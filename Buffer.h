@@ -1,7 +1,14 @@
 //
 // Created by dashuai on 2021/11/18.
 //
+
+#ifndef BUPT_FINAL_BUFFER_H
+#define BUPT_FINAL_BUFFER_H
 #include <functional>
+
+#ifdef  BUPT_FINAL_LOG_H
+#include "Log.h"
+#endif
 
 /**
  * @brief
@@ -10,8 +17,9 @@
  * f 处理函数，输入参数为T的函数
  */
 template<typename T>
-struct Buffer {
-    static const int BUFFER_SIZE = 4096;
+class Buffer {
+public:
+    static const int BUFFER_SIZE = 320*1024*10;
     T buffer[BUFFER_SIZE];
     int buffer_offset = 0;
     std::function<void(T &)> f;
@@ -20,14 +28,14 @@ struct Buffer {
 
     Buffer() : f([](T &x) {}) {};
 
-    void clear_and_do() {
+    virtual void clear_and_do() {
         for (int i = 0; i < buffer_offset; ++i) {
             f(buffer[i]);
         }
         buffer_offset = 0;
     }
 
-    void push(const T &c) {
+    virtual  void push(const T &c) {
         buffer[buffer_offset++] = c;
         if (buffer_offset == BUFFER_SIZE) {//TODO think
             clear_and_do();
@@ -42,7 +50,7 @@ struct Buffer {
  */
 template<typename T>
 struct Buffer2 {
-    static const int BUFFER_SIZE = 4096;
+    static const int BUFFER_SIZE = 4096*10;
     T buffer[BUFFER_SIZE];
     int start_pos = 0;
     int end_pos = 0;
@@ -120,4 +128,4 @@ struct Buffer2 {
     }
 };
 
-
+#endif //BUPT_FINAL_BUFFER_H

@@ -1,8 +1,26 @@
 #include <bits/stdc++.h>
 #include <unistd.h>
-#include "Buffer.h"
-#include "Log.h"
+
+#ifndef BUPT_FINAL_AC_H
+
 #include "AC.h"
+
+#endif
+#ifndef BUPT_FINAL_BUFFFER_H
+
+#include "Buffer.h"
+
+#endif
+
+#ifndef BUPT_FINAL_GUFFMAN_H
+
+#include "Huffman.h"
+
+#endif
+#ifndef BUPT_FINAL_LOG_H
+#include "Log.h"
+#endif
+
 
 const char help_text[] =
         "只可接受可见字符(ascii码为32~127)和'\\n'"
@@ -15,9 +33,6 @@ const char help_text[] =
         "-q\t\t\t可选，安静模式\n";
 
 
-using STACK = std::vector<std::pair<long long, TrieNode *>>;
-
-
 Buffer2<char> out_buf;
 using INFO = std::pair<long long, TrieNode *>;
 Buffer2<INFO> stack;
@@ -27,6 +42,7 @@ auto start_pos = [](const INFO &x) {
 auto longer = [](const INFO &x, const INFO &y) {
     return x.second->depth > y.second->depth;
 };
+
 void push_st(long long end_pt, TrieNode *end_node) {
     auto end_info = std::make_pair(end_pt, end_node);
 
@@ -45,7 +61,7 @@ void push_st(long long end_pt, TrieNode *end_node) {
     }
 }
 
-void AC_match(const char &c,TrieNode *root) {
+void AC_match(const char &c, TrieNode *root) {
     static long long pt = 0;
     static TrieNode *cur_node = root;
     //std::cerr << c << '\n';
@@ -60,34 +76,34 @@ void AC_match(const char &c,TrieNode *root) {
     //out_s += c;
 }
 
-inline void match_digit(char &c, TrieNode *root) {
-    //auto f = std::bind(&AC_match, std::placeholders::_1, root);
-    static auto f = [root](auto &&PH1) { return AC_match(std::forward<decltype(PH1)>(PH1), root); };
-    static Buffer<char> B(f);
-    B.push(c);
-}
-
 void zip(TrieNode *root, char input_file[], char output_file[]) {
     FILE *input = fopen(input_file, "r");
     FILE *output = fopen(output_file, "w");
-    out_buf.f = [&output](const char &c) {
+    Huffman H;
+    H.f = [&output](const char &c) {
         putc(c, output);
+    };
+    out_buf.f = [&H, &output](const char &c) {
+        //putc(c, output);
+        H.push(c);
     };
     if (!input) {
         std::cerr << "input_file error!\n";
         return;
     }
-    char c;
     auto ff = [&root](char &c) {
         AC_match(c, root);
     };
     auto B = Buffer<char>(ff);
+    int c;
     while ((c = getc(input)) != EOF) {
         B.push(c);
+        //H.push(c);
     }
     B.clear_and_do();
     fclose(input);
     out_buf.clear_and_do();
+    H.clear_and_do();
     fclose(output);
     //print_out(out_s, st, output_file);
 }
@@ -99,7 +115,8 @@ void unzip(char target_file[], char config_file[], char output_file[]) {
         fputc(c, output);
     };
     Buffer<char> out_stream(out_putc);
-    for (char c = getc(target); c != EOF; c = getc(target)) {
+    HuffmanDecode H;
+    H.f = [&out_stream, &output](const char &c) {
         if (c >= 'A') {
             for (auto &x: pattern_str[c - 'A']) {
                 out_stream.push(x);
@@ -107,7 +124,17 @@ void unzip(char target_file[], char config_file[], char output_file[]) {
         } else {
             out_stream.push(c);
         }
+        //out_stream.push(c);
+        //fputc(c, output);
+    };
+    //for (char c = getc(target); c != EOF; c = getc(target)) {
+    //    H.push(c);
+    //}
+    int c;
+    while ((c = getc(target)) != EOF) {
+        H.push(c);
     }
+    //H.clear_and_do();
     out_stream.clear_and_do();
     fclose(target);
     fclose(output);

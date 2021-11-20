@@ -7,8 +7,9 @@ include_directories(.)
 
 add_executable(bupt_final
         AC.h
-        Log.h
         Buffer.h
+        Huffman.h
+        Log.h
         main.cpp)
-set(CMAKE_CXX_FLAGS "/usr/local/gcc/bin/g++")
-set(CMAKE_CXX_FLAGS "-Wall -fsanitize=undefined -O3")
+set(CMAKE_CXX_COMPILER  "/usr/bin/g++")
+set(CMAKE_CXX_FLAGS "-Wall -fsanitize=undefined -O0")

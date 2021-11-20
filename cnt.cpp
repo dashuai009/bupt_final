@@ -20,8 +20,9 @@ int main() {
             std::cout << i << ' ' << cnt[i] << '\n';
         }
     }
-    std::priority_queue<long long, std::vector<long long>,
-                        std::greater<long long>>
+    std::priority_queue<long long/*, std::vector<long long>,
+                        std::greater<long long>*/>
+
         Huffman;
     for (int i = 0; i < 512; ++i) {
         Huffman.push(cnt[i]);
