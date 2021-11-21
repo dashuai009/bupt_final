@@ -4,10 +4,13 @@
 
 #ifndef BUPT_FINAL_BUFFER_H
 #define BUPT_FINAL_BUFFER_H
+
 #include <functional>
 
 #ifdef  BUPT_FINAL_LOG_H
+
 #include "Log.h"
+
 #endif
 
 /**
@@ -19,7 +22,7 @@
 template<typename T>
 class Buffer {
 public:
-    static const int BUFFER_SIZE = 320*1024*10;
+    static const int BUFFER_SIZE = 512 * 1024 ;
     T buffer[BUFFER_SIZE];
     int buffer_offset = 0;
     std::function<void(T &)> f;
@@ -28,14 +31,14 @@ public:
 
     Buffer() : f([](T &x) {}) {};
 
-    virtual void clear_and_do() {
+    std::function<void()> clear_and_do = [&]() {
         for (int i = 0; i < buffer_offset; ++i) {
             f(buffer[i]);
         }
         buffer_offset = 0;
-    }
+    };
 
-    virtual  void push(const T &c) {
+    virtual void push(const T &c) {
         buffer[buffer_offset++] = c;
         if (buffer_offset == BUFFER_SIZE) {//TODO think
             clear_and_do();
@@ -50,7 +53,7 @@ public:
  */
 template<typename T>
 struct Buffer2 {
-    static const int BUFFER_SIZE = 4096*10;
+    static const int BUFFER_SIZE = 4096 * 10;
     T buffer[BUFFER_SIZE];
     int start_pos = 0;
     int end_pos = 0;
