@@ -110,7 +110,7 @@ FILE *writeOutFile(char output_file_name[], Buffer<T> &out_buf) {
     };
     return output_ptr;
 }
-
+TrieNode* root = nullptr;
 Buffer<char> out_buf;
 Huffman H;
 
@@ -118,7 +118,7 @@ Buffer2<char> AC_buffer;
 Buffer2<INFO> AC_info_stack;
 Buffer<char> input_buffer;
 
-void zip(TrieNode *root, char input_file_name[], char output_file_name[]) {
+void zip(char input_file_name[], char output_file_name[]) {
     FILE *output_ptr = writeOutFile(output_file_name, out_buf);
     H.f = [](const char &c) {
         out_buf.push(c);
@@ -126,7 +126,7 @@ void zip(TrieNode *root, char input_file_name[], char output_file_name[]) {
     AC_buffer.f = [](const char &c) {
         H.push(c);
     };
-    input_buffer.f = [root](const char &c) {
+    input_buffer.f = [](const char &c) {
         AC_buffer.push(c);
         AC_match(c, root, [](long long end_pt, TrieNode *end_node) {
             push_st(end_pt, end_node, AC_info_stack, AC_buffer);
@@ -211,10 +211,10 @@ int main(int argc, char *argv[]) {
     Log(std::cout, "input_file:\t\t", input_file);
     Log(std::cout, "output_file:\t", output_file);
     Log(std::cout, "config_file:\t", config_file);
-    TrieNode *root = build_trie(config_file);
+    root = build_trie(config_file);
     if (mode == 0) {
         build_AC(root);
-        zip(root, input_file, output_file);
+        zip(input_file, output_file);
     } else {
         unzip(input_file, config_file, output_file);
     }

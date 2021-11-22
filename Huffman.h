@@ -4,7 +4,6 @@
 // huffman编码结果  512个int64_t(frequency)，一个int64_t表示紧跟之后的压缩文本的比特数，比特数/8个字节的压缩数据
 #ifndef BUPT_FINAL_HUFFMAN_H
 #define BUPT_FINAL_HUFFMAN_H
-#define C int32_t
 #ifndef  BUPT_FINAL_BUFFER_H
 #include"Buffer.h"
 #endif //BUPT_FINAL_BUFFER_H
@@ -13,8 +12,12 @@
 #include<queue>
 #include<functional>
 #include<algorithm>
+#include "BitSet.h"
 
-struct Huffman : Buffer<char> {
+using C = uint32_t;
+using CHAR = uint8_t;
+
+struct Huffman : Buffer<CHAR> {
 public:
     C totalCnt = 0;
     C char_cnt[512]{};
@@ -24,10 +27,10 @@ public:
 
     struct Huffman_node {
         Huffman_node *lson, *rson;
-        char c;
+        CHAR c;
 
-        Huffman_node(const char &c, Huffman_node *lson, Huffman_node *rson) : lson(lson), rson(rson), c(c) {};
-    } *root = NULL;
+        Huffman_node(const CHAR &c, Huffman_node *lson, Huffman_node *rson) : lson(lson), rson(rson), c(c) {};
+    } *root = nullptr;
 
     using P = std::pair<C, Huffman_node *>;
 
@@ -35,38 +38,37 @@ public:
         bool operator()(const P &x, const P &y) const { return x.first > y.first; }
     };
 
-    virtual  void clear_and_do()  {
+    virtual void clear_and_do() {
         if (buffer_offset == 0) {
             return;
         }
         totalCnt = calc();
         //Log(std::cout, tot_bits);
-        char tmp = 0;
-        for (int i = 0; i < 512; ++i) {
-            for (int j = 3; j >= 0; --j) {
-                tmp = ((unsigned int) char_cnt[i] >> (j * 8)) & 0xff;
+        CHAR tmp = 0;
+        for (const C &i: char_cnt) {
+            for (int j = 24; j >= 0; j -= 8) {
+                tmp = ((unsigned int) i >> j) & 0xff;
                 f(tmp);
             }
         }
         tmp = 0;
+        C tmp_cnt = 0;
         encoded_bits res;
         //res.resize(BUFFER_SIZE);
         for (int i = 0; i < buffer_offset; ++i) {
-            auto &code = bit[(unsigned char) buffer[i]];//&！！！！
+            const auto &code = bit[buffer[i]];//&！！！！
             res.insert(res.end(), code.begin(), code.end());
             //std::copy(code.begin(), code.end(), std::back_inserter(res));
         }
-        int tmp_offset = 7;
-        for (auto &b: res) {
-            tmp |= (b << tmp_offset);
-            --tmp_offset;
-            if (tmp_offset == -1) {
-                tmp_offset = 7;
+        for (const auto &b: res) {
+            tmp = (tmp << 1) | b;
+            tmp_cnt += 1;
+            if (__builtin_expect((tmp_cnt & 7) == 0, 0)) {
                 f(tmp);
-                tmp = 0;
             }
         }
-        if (tmp_offset != 7) {
+        if ((tmp_cnt & 7)) {
+            tmp <<= 8 - (tmp_cnt & 7);
             f(tmp);
         }
         memset(char_cnt, 0, sizeof(char_cnt));
@@ -86,27 +88,28 @@ public:
                 update_bit(cur_node->rson, new_bits);
             }
         } else {
-            bit[(int) (unsigned char) cur_node->c] = (cur_bits);
+            bit[cur_node->c] = (cur_bits);
         }
     }
 
-    //建树，更新bit数组，返回总的编码长度(bit)
-    void push(const char &x) override {
-        char_cnt[(int) (unsigned char) x]++;
+    void push(const CHAR &x) override {
+        char_cnt[x]++;
         buffer[buffer_offset++] = x;
         if (buffer_offset == BUFFER_SIZE) {
             clear_and_do();
         }
     }
 
+    //建树，更新bit数组，返回总的编码长度(bit)
     C calc() {
         std::priority_queue<P, std::vector<P>, myGreater> Huffman_heap;
         for (int i = 0; i < 512; ++i) {
             if (char_cnt[i] > 0) {
-                Huffman_heap.push(P{char_cnt[i], new Huffman_node(char(i), NULL, NULL)});
+                Huffman_heap.push(P{char_cnt[i], new Huffman_node(i, nullptr, nullptr)});
             }
         }
         C res = 0;
+        root = new Huffman_node(0, Huffman_heap.top().second, nullptr);
         for (; Huffman_heap.size() > 1;) {
             auto top1 = Huffman_heap.top();
             Huffman_heap.pop();
@@ -115,9 +118,6 @@ public:
             auto new_top = P{top1.first + top2.first, root = new Huffman_node(0, top1.second, top2.second)};
             res += top1.first + top2.first;
             Huffman_heap.push(new_top);
-        }
-        if (root == NULL) {
-            root = new Huffman_node(0, Huffman_heap.top().second, NULL);
         }
         auto tmp = encoded_bits();
         update_bit(root, tmp);
@@ -143,18 +143,16 @@ struct HuffmanDecode : public Huffman {
                 }
             }
         }
+        //Log(std::cout,buffer_offset);
         buffer_offset = 0;
     }
 
-    void push(const char &x) override {
+    void push(const CHAR &x) override {
         buffer[buffer_offset++] = x;
         if (buffer_offset <= sizeof(char_cnt)) {
             auto tail = buffer_offset - 1;
             auto i = tail / sizeof(C);
-            //auto j = tail % sizeof(C);
-            char_cnt[i] = (char_cnt[i]<<8) | (C)(unsigned char)x;
-            //char_cnt[i] &= (-1 ^ (0xff << ((sizeof(C) - j - 1) * 8)));
-            //char_cnt[i] |= (((C)(unsigned char) buffer[tail]) << ((sizeof(C) - 1 - j) * 8));
+            char_cnt[i] = (char_cnt[i] << 8) | (C) (unsigned char) x;
             if (buffer_offset == sizeof(char_cnt)) {
                 totalCnt = calc();
             }
