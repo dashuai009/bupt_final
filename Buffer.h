@@ -22,12 +22,12 @@
 template<typename T>
 class Buffer {
 public:
-    static const int BUFFER_SIZE = 512 * 1024 ;
+    static const int BUFFER_SIZE = 64 * 1024  ;
     T buffer[BUFFER_SIZE];
     int buffer_offset = 0;
     std::function<void(T &)> f;
 
-    Buffer(std::function<void(T &)> f) : f(f) {};
+    explicit Buffer(std::function<void(T &)> f) : f(f) {};
 
     Buffer() : f([](T &x) {}) {};
 

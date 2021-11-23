@@ -21,7 +21,7 @@ struct Huffman : Buffer<CHAR> {
 public:
     C totalCnt = 0;
     C char_cnt[512]{};
-    using encoded_bits = std::vector<char>;
+    using encoded_bits = BitSet;
     encoded_bits bit[512];
 
 
@@ -57,18 +57,36 @@ public:
         //res.resize(BUFFER_SIZE);
         for (int i = 0; i < buffer_offset; ++i) {
             const auto &code = bit[buffer[i]];//&！！！！
-            res.insert(res.end(), code.begin(), code.end());
+            for (int j = 0; j < (code.Size >> 3); ++j) {// code.Size != 0
+                tmp |= code.s[j] >> (tmp_cnt & 7);
+                f(tmp);
+                tmp = code.s[j] << (8 - (tmp_cnt & 7));
+            }
+            if ((code.Size & 7) + (tmp_cnt & 7) < 8) {
+                tmp |= (code.s[code.Size >> 3] << (8 - (code.Size & 7))) >> (tmp_cnt & 7);
+                //tmp = code.s[code.Size >> 3]  ;
+            } else if ((code.Size & 7) + (tmp_cnt & 7) == 8) {
+                tmp = tmp | ((code.s[code.Size >> 3] << (8 - (code.Size & 7))) >> (tmp_cnt & 7));
+                f(tmp);
+                tmp = 0;
+            } else if ((code.Size & 7) + (tmp_cnt & 7) >= 8) {
+                tmp |= code.s[code.Size >> 3] >> ((tmp_cnt + code.Size) & 7);
+                f(tmp);
+                tmp = code.s[code.Size >> 3] << (8 - ((code.Size + tmp_cnt) & 7));
+            }
+            tmp_cnt += code.Size;
+            //res.insert(res.end(), code.begin(), code.end());
             //std::copy(code.begin(), code.end(), std::back_inserter(res));
         }
-        for (const auto &b: res) {
-            tmp = (tmp << 1) | b;
-            tmp_cnt += 1;
-            if (__builtin_expect((tmp_cnt & 7) == 0, 0)) {
-                f(tmp);
-            }
-        }
+        //for (const auto &b: res) {
+        //    tmp = (tmp << 1) | b;
+        //    tmp_cnt += 1;
+        //    if (__builtin_expect((tmp_cnt & 7) == 0, 0)) {
+        //        f(tmp);
+        //    }
+        //}
         if ((tmp_cnt & 7)) {
-            tmp <<= 8 - (tmp_cnt & 7);
+            //  tmp = tmp<<(8 - (tmp_cnt & 7));
             f(tmp);
         }
         memset(char_cnt, 0, sizeof(char_cnt));
@@ -87,6 +105,7 @@ public:
             if (cur_node->rson) {
                 update_bit(cur_node->rson, new_bits);
             }
+            new_bits.pop_back();
         } else {
             bit[cur_node->c] = (cur_bits);
         }
@@ -121,6 +140,15 @@ public:
         }
         auto tmp = encoded_bits();
         update_bit(root, tmp);
+        for (int i = 0; i < 512; ++i) {
+            if (bit[i].Size) {
+                //std::cout << i << '\t' << (('\n' < i && i <= 'z') ? char(i) : char(i));
+                for (int j = 0; j < bit[i].Size; ++j) {
+               //     std::cout << bit[i].Test(j);
+                }
+               // std::cout << '\n';
+            }
+        }
         return res;
     }
 };

@@ -7,9 +7,10 @@ include_directories(.)
 
 add_executable(bupt_final
         AC.h
+        BitSet.h
         Buffer.h
         Huffman.h
         Log.h
         main.cpp)
 set(CMAKE_CXX_COMPILER  "/usr/bin/g++")
-set(CMAKE_CXX_FLAGS "-Wall -fsanitize=undefined -O2")
+set(CMAKE_CXX_FLAGS "-Wall -fsanitize=undefined -O0")

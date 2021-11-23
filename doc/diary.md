@@ -47,3 +47,9 @@ done
 > 
 
 - cmp -i a.txt b.txt 现实a、 b文件差异的字节位置和内容
+
+## 11.22
+
+|test_in4.txt|time myzip|time myunzip|test_out.txt|压缩率|
+|---|---|---|---|---|
+|523582020|17.141s |17.007s|124765778|23.83%|
