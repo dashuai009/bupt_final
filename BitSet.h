@@ -10,7 +10,7 @@ using T = uint8_t;
 
 struct BitSet {
     uint8_t s[512 >> Rshift];
-    int Size = 0;
+    unsigned int Size = 0;
 
     BitSet() {
         memset(s, 0, sizeof(s));

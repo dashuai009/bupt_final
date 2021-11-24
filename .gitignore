@@ -3,3 +3,4 @@ o
 cmake-build-debug
 !data/defaultConfig.txt
 .idea
+gzip-1.11

@@ -11,6 +11,7 @@ add_executable(bupt_final
         Buffer.h
         Huffman.h
         Log.h
+        SetOptions.h
         main.cpp)
 set(CMAKE_CXX_COMPILER  "/usr/bin/g++")
-set(CMAKE_CXX_FLAGS "-Wall -fsanitize=undefined -O0")
+set(CMAKE_CXX_FLAGS "-Wall -fsanitize=undefined -O2")

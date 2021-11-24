@@ -24,14 +24,14 @@ class Buffer {
 public:
     static const int BUFFER_SIZE = 64 * 1024  ;
     T buffer[BUFFER_SIZE];
-    int buffer_offset = 0;
-    std::function<void(T &)> f;
+    unsigned int buffer_offset = 0;
+    std::function<void(T &)> f = nullptr;
 
     explicit Buffer(std::function<void(T &)> f) : f(f) {};
 
-    Buffer() : f([](T &x) {}) {};
+    Buffer() : f([](const T &x) {}) {};
 
-    std::function<void()> clear_and_do = [&]() {
+    virtual  void clear_and_do() {
         for (int i = 0; i < buffer_offset; ++i) {
             f(buffer[i]);
         }

@@ -11,7 +11,6 @@
 #include "Buffer.h"
 
 #endif
-
 #ifndef BUPT_FINAL_GUFFMAN_H
 
 #include "Huffman.h"
@@ -20,17 +19,11 @@
 #ifndef BUPT_FINAL_LOG_H
 #include "Log.h"
 #endif
+#ifndef BUPT_FINAL_SETOPTIONS_H
 
+#include "SetOptions.h"
 
-const char help_text[] =
-        "只可接受可见字符(ascii码为32~127)和'\\n'"
-        "字符的纯文本文件。可接受如下参数列表：\n"
-        "-h\t\t\t可选，显示此帮助信息\n"
-        "-i <input.file>\t\tt必选，输入文件\n"
-        "-o <output.file>\t可选，默认覆盖原文件\n"
-        "-p <config.txt>\t\t可选，配置文件，默认提供defalutConfig.txt文件\n"
-        "-d\t\t\t解压模式\n"
-        "-q\t\t\t可选，安静模式\n";
+#endif
 
 
 using INFO = std::pair<long long, TrieNode *>;
@@ -104,13 +97,17 @@ void readInPutFile(char input_file_name[], Buffer<char> &input_buf) {
 template<typename T>
 FILE *writeOutFile(char output_file_name[], Buffer<T> &out_buf) {
     FILE *output_ptr = fopen(output_file_name, "wb");
-    out_buf.clear_and_do = [output_ptr, &out_buf]() {
-        fwrite(out_buf.buffer, sizeof(T), out_buf.buffer_offset, output_ptr);
-        out_buf.buffer_offset = 0;
+    out_buf.f = [output_ptr](const T &x) {
+        fputc(uint8_t(x), output_ptr);
     };
+    //out_buf.clear_and_do = [output_ptr, &out_buf]() {
+    //    fwrite(out_buf.buffer, sizeof(T), out_buf.buffer_offset, output_ptr);
+    //    out_buf.buffer_offset = 0;
+    //};
     return output_ptr;
 }
-TrieNode* root = nullptr;
+
+TrieNode *root = nullptr;
 Buffer<char> out_buf;
 Huffman H;
 
@@ -135,6 +132,8 @@ void zip(char input_file_name[], char output_file_name[]) {
     readInPutFile(input_file_name, input_buffer);
     AC_buffer.clear_and_do();
     H.clear_and_do();
+
+
     out_buf.clear_and_do();
     fclose(output_ptr);
 }
@@ -171,46 +170,9 @@ void unzip(char target_file[], char config_file[], char output_file[]) {
     fclose(output);
 }
 
-char input_file[100] = "test_in.txt";
-char output_file[100];
-char config_file[100] = "defaultConfig.txt";
-int mode = 0;
 
 int main(int argc, char *argv[]) {
-    int opt = 0;
-    while ((opt = getopt(argc, argv, "h::i:o:p:d::")) != -1) {
-        switch (opt) {
-            case 'h':
-                printf("%s", help_text);
-                exit(0);
-                break;
-            case 'i':
-                strcpy(input_file, optarg);
-                if (strlen(output_file) == 0) {
-                    strcpy(output_file, input_file);
-                }
-                break;
-            case 'o':
-                strcpy(output_file, optarg);
-                output_file[strlen(optarg)] = 0;
-                break;
-            case 'p':
-                strcpy(config_file, optarg);
-                output_file[strlen(optarg)] = 0;
-                break;
-            case 'q':
-                quiet = true;
-                break;
-            case 'd':
-                mode = 1; //解压模式
-                break;
-            default:
-                break;
-        }
-    }
-    Log(std::cout, "input_file:\t\t", input_file);
-    Log(std::cout, "output_file:\t", output_file);
-    Log(std::cout, "config_file:\t", config_file);
+    set_options(argc, argv);
     root = build_trie(config_file);
     if (mode == 0) {
         build_AC(root);

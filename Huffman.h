@@ -38,7 +38,7 @@ public:
         bool operator()(const P &x, const P &y) const { return x.first > y.first; }
     };
 
-    virtual void clear_and_do() {
+     void clear_and_do()override {
         if (buffer_offset == 0) {
             return;
         }
