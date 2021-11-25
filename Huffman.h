@@ -21,7 +21,7 @@ struct Huffman : Buffer<CHAR> {
 public:
     C totalCnt = 0;
     C char_cnt[512]{};
-    using encoded_bits = BitSet;
+    using encoded_bits = BitSet<uint8_t>;
     encoded_bits bit[512];
 
 
@@ -38,12 +38,11 @@ public:
         bool operator()(const P &x, const P &y) const { return x.first > y.first; }
     };
 
-     void clear_and_do()override {
+    void clear_and_do() override {
         if (buffer_offset == 0) {
             return;
         }
         totalCnt = calc();
-        //Log(std::cout, tot_bits);
         CHAR tmp = 0;
         for (const C &i: char_cnt) {
             for (int j = 24; j >= 0; j -= 8) {
@@ -51,44 +50,20 @@ public:
                 f(tmp);
             }
         }
-        tmp = 0;
-        C tmp_cnt = 0;
         encoded_bits res;
         //res.resize(BUFFER_SIZE);
         for (int i = 0; i < buffer_offset; ++i) {
             const auto &code = bit[buffer[i]];//&！！！！
-            for (int j = 0; j < (code.Size >> 3); ++j) {// code.Size != 0
-                tmp |= code.s[j] >> (tmp_cnt & 7);
-                f(tmp);
-                tmp = code.s[j] << (8 - (tmp_cnt & 7));
-            }
-            if ((code.Size & 7) + (tmp_cnt & 7) < 8) {
-                tmp |= (code.s[code.Size >> 3] << (8 - (code.Size & 7))) >> (tmp_cnt & 7);
-                //tmp = code.s[code.Size >> 3]  ;
-            } else if ((code.Size & 7) + (tmp_cnt & 7) == 8) {
-                tmp = tmp | ((code.s[code.Size >> 3] << (8 - (code.Size & 7))) >> (tmp_cnt & 7));
-                f(tmp);
-                tmp = 0;
-            } else if ((code.Size & 7) + (tmp_cnt & 7) >= 8) {
-                tmp |= code.s[code.Size >> 3] >> ((tmp_cnt + code.Size) & 7);
-                f(tmp);
-                tmp = code.s[code.Size >> 3] << (8 - ((code.Size + tmp_cnt) & 7));
-            }
-            tmp_cnt += code.Size;
-            //res.insert(res.end(), code.begin(), code.end());
-            //std::copy(code.begin(), code.end(), std::back_inserter(res));
+            res.append(code);
         }
-        //for (const auto &b: res) {
-        //    tmp = (tmp << 1) | b;
-        //    tmp_cnt += 1;
-        //    if (__builtin_expect((tmp_cnt & 7) == 0, 0)) {
-        //        f(tmp);
-        //    }
-        //}
-        if ((tmp_cnt & 7)) {
-            //  tmp = tmp<<(8 - (tmp_cnt & 7));
-            f(tmp);
+        for (int i = 0; i < (res.Size >> 3); ++i) {
+            f(res.bits[i]);
         }
+        if (res.Size & 7) {
+            uint8_t lastChar = (res.bits[res.Size >> 3] << (8 - (res.Size & 7)));
+            f(lastChar);
+        }
+        // Log(std::cout,totalCnt,res.Size);
         memset(char_cnt, 0, sizeof(char_cnt));
         buffer_offset = 0;
     }
@@ -96,12 +71,12 @@ public:
     void update_bit(Huffman_node *cur_node, encoded_bits cur_bits) {
         if (cur_node->lson || cur_node->rson) {
             auto new_bits = (cur_bits);
-            new_bits.push_back(0);
+            new_bits.push_back(false);
             if (cur_node->lson) {
                 update_bit(cur_node->lson, new_bits);
             }
             new_bits.pop_back();
-            new_bits.push_back(1);
+            new_bits.push_back(true);
             if (cur_node->rson) {
                 update_bit(cur_node->rson, new_bits);
             }
@@ -140,15 +115,6 @@ public:
         }
         auto tmp = encoded_bits();
         update_bit(root, tmp);
-        for (int i = 0; i < 512; ++i) {
-            if (bit[i].Size) {
-                //std::cout << i << '\t' << (('\n' < i && i <= 'z') ? char(i) : char(i));
-                for (int j = 0; j < bit[i].Size; ++j) {
-               //     std::cout << bit[i].Test(j);
-                }
-               // std::cout << '\n';
-            }
-        }
         return res;
     }
 };
@@ -156,16 +122,16 @@ public:
 struct HuffmanDecode : public Huffman {
 
     void clear_and_do() override {
-        totalCnt = calc();
+        //totalCnt = calc();
         auto cur_node = root;
         for (int i = sizeof(char_cnt); i < buffer_offset; ++i) {
-            for (int j = 7; j >= 0 && ((i - sizeof(char_cnt) + 1) * 8 - j) <= totalCnt; --j) {
-                if (buffer[i] & (1 << j)) {
+            for (int j = 7; j >= 0 && (((i - sizeof(char_cnt) + 1)<<3) - j) <= totalCnt; --j) {
+                if (__builtin_expect(buffer[i] & (1 << j), 1)) {//条件为真的概率大
                     cur_node = cur_node->rson;
                 } else {
                     cur_node = cur_node->lson;
                 }
-                if (cur_node->lson == nullptr && cur_node->rson == nullptr) {
+                if (__builtin_expect(cur_node->lson == nullptr && cur_node->rson == nullptr, 0)) {
                     f(cur_node->c);
                     cur_node = root;
                 }
