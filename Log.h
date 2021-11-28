@@ -8,7 +8,7 @@ bool quiet = false;
 
 template<typename T>
 std::ostream &Log(std::ostream &os, const T &t) {
-    return os << t<<'\n';
+    return os << t << '\n';
 }
 
 template<typename T, typename... Args>
