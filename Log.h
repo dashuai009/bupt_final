@@ -8,13 +8,21 @@ bool quiet = false;
 
 template<typename T>
 std::ostream &Log(std::ostream &os, const T &t) {
-    return os << t << '\n';
+    if(!quiet) {
+        return os << t << '\n';
+    }else{
+        return os;
+    }
 }
 
 template<typename T, typename... Args>
 std::ostream &Log(std::ostream &os, const T &t, const Args &...rest) {
-    os << t << ' ';
-    return Log(os, rest...);
+    if(!quiet) {
+        os << t << ' ';
+        return Log(os, rest...);
+    }else{
+        return os;
+    }
 }
 
 #endif //BUPT_FINAL_LOG_H

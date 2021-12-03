@@ -15,6 +15,9 @@
 #include "Buffer.h"
 
 #endif //BUPT_FINAL_BUFFER_H
+#ifndef  BUPT_FINAL_LOG_H
+#include "Log.h"
+#endif
 
 #include<vector>
 #include<queue>
@@ -51,10 +54,26 @@ public:
         bool operator()(const P &x, const P &y) const { return x.first > y.first; }
     };
 
+    void clear_Huft(){
+        std::function<void(HuffmanNode*)> clear_Huft= [&clear_Huft](HuffmanNode * cur_ptr){
+            if(cur_ptr ->lson){
+                clear_Huft(cur_ptr->lson);
+            }
+            if(cur_ptr->rson){
+                clear_Huft(cur_ptr->rson);
+            }
+            delete cur_ptr;
+        };
+        clear_Huft(root);
+        root = nullptr;
+    }
+
     void clear_and_do() override {
         if (buffer_offset == 0) {//保证不会对空集编码
             return;
         }
+        Log(std::cout,"before huffman:",buffer_offset," chars");
+        Log(std::cout,"after huffman: 6 bytes 长度控制位");
         totalBit = calc();
         //print_code();
         /*编码结果的bit数n*/
@@ -71,9 +90,11 @@ public:
         for (auto it: dlr_bits.bits) {
             f(it);
         }
+        Log(std::cout,"先根遍历结果:",dlr_bits.bits.size(),"bytes; ",dlr_bits.Size," bits");
         for (auto it: char_set) {
             f(it);
         }
+        Log(std::cout,"字符集大小:",totalChar," bytes");
         encoded_bits res;
         //res.resize(BUFFER_SIZE);
         for (int i = 0; i < buffer_offset; ++i) {
@@ -83,8 +104,10 @@ public:
         for (auto it: res.bits) {
             f(it);
         }
-        // Log(std::cout,totalBit,res.Size);
+        Log(std::cout,"编码结果：",totalBit,"bits ;",res.bits.size()," bytes");
         memset(char_cnt, 0, sizeof(char_cnt));
+        clear_Huft();
+        //Log(std::cout,(unsigned  long long )root);
         buffer_offset = 0;
         char_set.clear();
         dlr_bits.clear();
@@ -130,7 +153,7 @@ public:
             }
         }
         C res = 0;
-        root = new HuffmanNode(0, Huffman_heap.top().second, nullptr);
+        //root = new HuffmanNode(0, Huffman_heap.top().second, nullptr);
         for (; Huffman_heap.size() > 1;) {
             auto top1 = Huffman_heap.top();
             Huffman_heap.pop();
@@ -140,6 +163,9 @@ public:
             res += top1.first + top2.first;
             Huffman_heap.push(new_top);
         }
+        if(root == nullptr){
+            root = new HuffmanNode(0, Huffman_heap.top().second, nullptr);
+        }
         auto tmp = encoded_bits();
         dfs(root, tmp);
         return totalChar == 1 ? Huffman_heap.top().first : res;
@@ -147,8 +173,8 @@ public:
 
     void print_code() {
         for (int i = 0; i < 512; ++i) {
-            if (bit[i].Size > 0) {
-                std::cout << i << '\t';
+            if (char_cnt[i] > 0) {
+                std::cout << i << '\t' << char_cnt[i] << "\t\t\t";
                 bit[i].out();
                 std::cout << '\n';
             }
@@ -210,6 +236,8 @@ struct HuffmanDecode : public Huffman {
                 cur_node = this->root;
             }
         });
+
+        clear_Huft();
         buffer_offset = 0;
         dlr_bits_size = 0;
         totalChar = 0;
