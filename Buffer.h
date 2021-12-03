@@ -22,17 +22,21 @@
 template<typename T>
 class Buffer {
 public:
-    static const int BUFFER_SIZE = 64 * 1024  ;
-    T buffer[BUFFER_SIZE];
-    unsigned int buffer_offset = 0;
-    std::function<void(T &)> f = nullptr;
+    uint32_t BUFFER_SIZE = 64 * 1024;
+    T *buffer;
+    int32_t buffer_offset = 0;
+    std::function<void(T)> f = nullptr;
 
-    explicit Buffer(std::function<void(T &)> f) : f(f) {};
+    explicit Buffer(uint32_t size) : BUFFER_SIZE(size) {/*rest*/
+        buffer = new T[size];
+    }
 
-    Buffer() : f([](const T &x) {}) {};
+    ~Buffer() {
+        delete [] buffer;
+    }
 
-    virtual  void clear_and_do() {
-        for (int i = 0; i < buffer_offset; ++i) {
+    virtual void clear_and_do() {
+        for (int32_t i = 0; i < buffer_offset; ++i) {
             f(buffer[i]);
         }
         buffer_offset = 0;
@@ -43,91 +47,6 @@ public:
         if (buffer_offset == BUFFER_SIZE) {//TODO think
             clear_and_do();
         }
-    }
-};
-
-/**
- * @brief
- *
- * @tparam F 回调函数，输入参数为char c的函数
- */
-template<typename T>
-struct Buffer2 {
-    static const int BUFFER_SIZE = 4096 * 10;
-    T buffer[BUFFER_SIZE];
-    int start_pos = 0;
-    int end_pos = 0;
-    std::function<void(T &)> f;
-
-    Buffer2(std::function<void(T &)> f) : f(f) {};
-
-    Buffer2() : f([](T &x) {}) {};
-
-    void clear() {
-        end_pos = start_pos;
-    }
-
-    void clear_and_do() {
-        if (end_pos >= start_pos) {
-            for (int i = start_pos; i < end_pos; ++i) {
-                f(buffer[i]);
-            }
-        } else {
-            for (int i = start_pos; i < BUFFER_SIZE; ++i) {
-                f(buffer[i]);
-            }
-            for (int i = 0; i < end_pos; ++i) {
-                f(buffer[i]);
-            }
-        }
-        this->clear();
-    }
-
-    void push(const T &c) {
-        buffer[end_pos++] = c;
-        if (end_pos == BUFFER_SIZE) {
-            end_pos = 0;
-        }
-        if (this->size() >= BUFFER_SIZE - 10) {//TODO think
-            int med = (start_pos + BUFFER_SIZE / 2) % BUFFER_SIZE;
-            if (med > start_pos) {
-                for (int i = start_pos; i < med; ++i) {
-                    f(buffer[i]);
-                }
-            } else {
-                for (int i = start_pos; i < BUFFER_SIZE; ++i) {
-                    f(buffer[i]);
-                }
-                for (int i = 0; i < med; ++i) {
-                    f(buffer[i]);
-                }
-            }
-            start_pos = med;
-        }
-    }
-
-    int size() {
-        return (end_pos >= start_pos) ? end_pos - start_pos : BUFFER_SIZE - start_pos + end_pos;
-    }
-
-    const T &back() {//TODO error
-        return buffer[end_pos - 1];
-    }
-
-    const T &get(const int &pos) {//TODO try catch
-        if (pos < 0) {
-            return buffer[end_pos + pos < 0 ? end_pos + pos + BUFFER_SIZE : end_pos + pos];
-        } else {
-            return buffer[start_pos + pos >= BUFFER_SIZE ? start_pos + pos - BUFFER_SIZE : start_pos + pos];
-        }
-    }
-
-    void pop_back(const int &n) {//TODO error
-        end_pos = end_pos - n;
-        if (end_pos < 0) {
-            end_pos += BUFFER_SIZE;
-        }
-
     }
 };
 
