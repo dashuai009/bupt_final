@@ -10,13 +10,24 @@
  */
 #include <vector>
 
-#define Rshift (3)
+//#define Rshift (3)
 #define LastBlockBits (Size & Ones)
 #define LastBlockNum (Size >> Rshift)
 
 //Recommend Block's type:uint8_t,uint64_t
 template<typename Block>
 struct BitSet {
+    static const auto Rshift = [](const Block &size_of_Block) constexpr {//==Log_2(bit_of_Block = size_of_Block*8)
+        if (size_of_Block == 1) {
+            return Block(3);
+        } else if (size_of_Block == 2) {
+            return Block(4);
+        } else if (size_of_Block == 4) {
+            return Block(5);
+        } else if (size_of_Block == 8) {
+            return Block(6);
+        } else return Block(-1);
+    }(sizeof(Block));
 #define Ones (((Block)1<<Rshift)-1)
 #define BlockBits ((Block)1 << Rshift)
     std::vector<Block> bits{};
@@ -24,6 +35,11 @@ struct BitSet {
 
     uint32_t size() {
         return Size;
+    }
+
+    void clear() {
+        Size = 0;
+        bits.clear();
     }
 
     //void Set(unsigned int pos, bool val) {
@@ -65,10 +81,10 @@ struct BitSet {
             Size += x.Size;
             return;
         }
-        for (int i = 0; i < (int(x.Size) >> 3)  ; ++i) {
+        for (int i = 0; i < (int(x.Size) >> 3); ++i) {
             push_back(x.bits[i]);
         }
-        if(x.Size &Ones){
+        if (x.Size & Ones) {
             if ((Size & Ones) + (x.Size & Ones) <= (1 << Rshift)) {
                 bits[LastBlockNum] <<= (x.Size & Ones);
                 bits[LastBlockNum] |= (x.bits[x.Size >> Rshift]);
@@ -81,6 +97,23 @@ struct BitSet {
             Size += (x.Size & Ones);
         }
 
+    }
+
+    void forEach(const std::function<void(bool)> &fx) {
+        for (int i = 0; i < (Size >> Rshift); ++i) {
+            for (int j = BlockBits - 1; j >= 0; --j) {
+                fx(bits[i] & (Block(1) << j));
+            }
+        }
+        for (int j = LastBlockBits - 1; j >= 0; --j) {
+            fx(bits[LastBlockNum] & (Block(1) << j));
+        }
+    }
+
+    void out(){
+        forEach([](bool x){
+            std::cout<<(x?'1':'0');
+        });
     }
 
     bool Test(unsigned int pos) const {
