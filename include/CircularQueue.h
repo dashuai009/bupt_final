@@ -11,16 +11,20 @@
  * @tparam F 回调函数，输入参数为char c的函数
  */
 template<typename T>
-struct CircularQueue {
+class CircularQueue {
+public:
     size_t BUFFER_SIZE = 64 * 4096;
     T *buffer = nullptr;
     int start_pos = 0;
     int end_pos = 0;
-    std::function<void(T &)> f = nullptr;
+    std::function<void(T)> f = nullptr;
 
-    explicit CircularQueue(size_t size) : BUFFER_SIZE(size) {
+     CircularQueue(size_t size) : BUFFER_SIZE(size) {
         buffer = new T[BUFFER_SIZE];
     };
+    CircularQueue(size_t size,const std::function<void(T)> & f):BUFFER_SIZE(size),f(f){
+        buffer = new T[BUFFER_SIZE];
+    }
 
     ~CircularQueue() {
         delete [] buffer;
@@ -66,9 +70,9 @@ struct CircularQueue {
         return (end_pos >= start_pos) ? end_pos - start_pos : BUFFER_SIZE - start_pos + end_pos;
     }
 
-    const T &back() {//TODO error
-        return buffer[end_pos - 1];
-    }
+    //const T &back() {//TODO error
+    //    return buffer[end_pos - 1];
+    //}
 
     const T &get(const int &pos) {//TODO try catch
         if (pos < 0) {

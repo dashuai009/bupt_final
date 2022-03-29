@@ -4,7 +4,7 @@
 
 #ifndef BUPT_FINAL_LOG_H
 #define BUPT_FINAL_LOG_H
-bool quiet = false;
+bool quiet = true;
 
 template<typename T>
 std::ostream &Log(std::ostream &os, const T &t) {

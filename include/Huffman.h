@@ -10,14 +10,8 @@
 // 5. (n+7)/8个byte,编码结果。
 #ifndef BUPT_FINAL_HUFFMAN_H
 #define BUPT_FINAL_HUFFMAN_H
-#ifndef  BUPT_FINAL_BUFFER_H
-
 #include "Buffer.h"
-
-#endif //BUPT_FINAL_BUFFER_H
-#ifndef  BUPT_FINAL_LOG_H
 #include "Log.h"
-#endif
 
 #include<vector>
 #include<queue>
@@ -28,7 +22,8 @@
 using C = uint32_t;
 using CHAR = uint8_t;
 
-struct Huffman : Buffer<CHAR> {
+class Huffman : public Buffer<CHAR> {
+    using Buffer<CHAR>::Buffer;
 public:
     C totalChar = 0;
     C totalBit = 0;
@@ -47,8 +42,6 @@ public:
     } *root = nullptr;
 
     using P = std::pair<C, HuffmanNode *>;
-
-    explicit Huffman(uint32_t size) : Buffer(size) {}
 
     struct myGreater : std::binary_function<P, P, bool> {
         bool operator()(const P &x, const P &y) const { return x.first > y.first; }
@@ -182,10 +175,10 @@ public:
     }
 };
 
-struct HuffmanDecode : public Huffman {
+class HuffmanDecode : public Huffman {
+    using Huffman::Huffman;
+public:
     C dlr_bits_size = 0;
-
-    explicit HuffmanDecode(uint32_t size) : Huffman(size) {}
 
     HuffmanNode *undfs(int &pt, int &char_num) {
         if (dlr_bits.Test(pt)) {

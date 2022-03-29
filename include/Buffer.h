@@ -22,13 +22,16 @@
 template<typename T>
 class Buffer {
 public:
-    uint32_t BUFFER_SIZE = 64 * 1024;
+    int32_t BUFFER_SIZE = 64 * 1024;
     T *buffer;
     int32_t buffer_offset = 0;
-    std::function<void(T)> f = nullptr;
+    std::function<void(T)> f;
 
-    explicit Buffer(uint32_t size) : BUFFER_SIZE(size) {/*rest*/
+     explicit Buffer(int32_t size) : BUFFER_SIZE(size) {/*rest*/
         buffer = new T[size];
+    }
+     Buffer(int32_t size,const std::function<void(T)> f):BUFFER_SIZE(size),f(f){
+         buffer = new T[size];
     }
 
     ~Buffer() {
