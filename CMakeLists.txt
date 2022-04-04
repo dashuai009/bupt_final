@@ -23,6 +23,7 @@ add_executable(bupt_final
         include/Huffman.h
         include/Log.h
         include/SetOptions.h
+        include/Zip.h
         main.cpp)
 
 

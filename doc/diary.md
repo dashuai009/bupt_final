@@ -159,3 +159,9 @@ slightly larger than the original. The worst case expansion is
 a few bytes for the gzip file header, plus 5 bytes every 32K block,
 or an expansion ratio of 0.015% for large files. Note that the actual
 number of used disk blocks almost never increases.
+
+## 11.22
+
+|test_in4.txt|time myzip|time myunzip|test_out.txt|压缩率|
+|---|---|---|---|---|
+|523582020|19s|6989.51 ms|102813647|19.64%|
