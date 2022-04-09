@@ -33,7 +33,7 @@ InfoStack AC_info_stack(N * 3);
 
 long long pt = 0;
 
-void fff(const char &c) {
+void deal_info(const char &c) {
     if (AC_info_stack.size() > 0) {
         auto info_head = AC_info_stack.get(0);
         if (info_head.start_pos() == pt) {
@@ -55,16 +55,16 @@ void fff(const char &c) {
     ++pt;
 }
 
-CircularQueue<char> AC_buffer(N, fff);
+CircularQueue<char> AC_buffer(N, deal_info);
 AC::AutoMaton autoMaton;
 
 
-void kkk(const char &c) {
+void ac_match(const char &c) {
     AC_info_stack.AC_match(c, autoMaton.root);
     AC_buffer.push(c);
 }
 
-InputBuffer input_buffer(N, kkk);
+InputBuffer input_buffer(N, ac_match);
 
 
 void clear_all() {
