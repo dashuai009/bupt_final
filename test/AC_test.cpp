@@ -54,7 +54,7 @@ protected:
                 after_match_buffer.push(true, c);
             }
             if (info_head.end_pos == pt) {
-                AC_info_stack.start_pos++;
+                AC_info_stack.fastPopFront();
             }
         } else {
             after_match_buffer.push(true, c);

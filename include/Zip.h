@@ -44,10 +44,7 @@ void deal_info(const char &c) {
             after_match_buffer.push(true, c);
         }
         if (info_head.end_pos == pt) {
-            AC_info_stack.start_pos++;
-            if (AC_info_stack.start_pos >= AC_info_stack.BUFFER_SIZE) {
-                AC_info_stack.start_pos = 0;
-            }
+            AC_info_stack.fastPopFront();
         }
     } else {
         after_match_buffer.push(true, c);

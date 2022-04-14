@@ -12,33 +12,40 @@
  */
 template<typename T>
 class CircularQueue {
-public:
+private:
     size_t BUFFER_SIZE = 64 * 4096;
     T *buffer = nullptr;
     int start_pos = 0;
     int end_pos = 0;
     std::function<void(T)> f = nullptr;
 
-     CircularQueue(size_t size) : BUFFER_SIZE(size) {
+    void inc(int &pos) {
+        ++pos;
+        if (pos >= BUFFER_SIZE) {
+            pos = 0;
+        }
+    }
+
+public:
+
+    CircularQueue(size_t size) : BUFFER_SIZE(size) {
         buffer = new T[BUFFER_SIZE];
     };
-    CircularQueue(size_t size,const std::function<void(T)> & f):BUFFER_SIZE(size),f(f){
+
+    CircularQueue(size_t size, const std::function<void(T)> &f) : BUFFER_SIZE(size), f(f) {
         buffer = new T[BUFFER_SIZE];
     }
 
     ~CircularQueue() {
-        delete [] buffer;
+        delete[] buffer;
     }
 
     void clear() {
         end_pos = start_pos;
     }
 
-    void inc(int &pos) {
-        ++pos;
-        if (pos >= BUFFER_SIZE) {
-            pos = 0;
-        }
+    void fastPopFront() {
+        inc(start_pos);
     }
 
     void clear_and_do() {
