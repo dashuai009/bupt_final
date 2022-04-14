@@ -47,7 +47,7 @@
 \title{zip}
 \subtitle{雷达感知数据高效压缩工具的设计与实现}
 \date{\today}
-\author{陈建帅}
+\author{报告人：陈建帅，指导老师：张海滨}
 \institute{BUPT}
 \titlegraphic{\hfill\includegraphics[height=1.5cm]{figures/xiaohui.png}}
 
@@ -109,6 +109,16 @@
   定义 $|s_i|$ 是模式串的长度，$|S|$ 是文本串的长度，$|\Sigma|$ 是字符集的大小（在我们的问题中是128）。如果连了 trie 图，时间复杂度就是 $O(\sum|s_i|+n|\Sigma|+|S|)$，其中 $n$ 是 AC 自动机中结点的数目，并且最大可以达到 $O(\sum|s_i|)$。如果不连 trie 图，并且在构建 fail 指针的时候避免遍历到空儿子，时间复杂度就是 $O(\sum|s_i|+|S|)$。
 \end{block} 
 \end{frame}
+
+\begin{frame}{Automaton}
+  模式串集合\texttt{i\ hers\ his\ she}构成的trie树。
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../pictures/ac-automaton4.png}
+    \caption{Automaton}
+  \end{figure}
+\end{frame}
+
 \begin{frame}{zlib}
   现有很多开源代码实现了gzip等压缩算法，比如zlib头文件。它使用C语言实现了gzip的相关算法（如deflate等）。
   借助这些工具，可以提升我们雷达数据压缩工具的性能。
