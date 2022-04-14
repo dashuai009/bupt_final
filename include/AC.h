@@ -19,14 +19,13 @@
 #include<queue>
 #include<vector>
 #include "Log.h"
-
+#include "INFO.h"
 namespace AC {
-using STR = std::string;
-std::vector<STR> pattern_str;
 
 struct TrieNode {
-    TrieNode *nxt[128]{};
-    TrieNode *fail;
+    typedef TrieNode* TrieNodePtr;
+    TrieNodePtr nxt[128]{};
+    TrieNodePtr fail;
     int depth;
     int end; //第几个模式串，之后要放到占位符中间，0表示当前不是匹配串的结尾字符
     char c;
@@ -38,23 +37,25 @@ struct TrieNode {
         }
     }
 };
-
+typedef TrieNode* TrieNodePtr;
 
 class AutoMaton {
+    InfoStack& infoStack;
+    TrieNodePtr root = new TrieNode((char) 0, 0);
+    std::vector<TrieNodePtr> nodeSet;
 public:
-    TrieNode *root = new TrieNode((char) 0, 0);
-
-    std::vector<TrieNode*> nodeSet;
-    void deleteNode(TrieNode *cur) {
-        for (auto it: cur->nxt) {
-            if (it != nullptr && it != cur) {
-                deleteNode(it);
-                //it = nullptr;//这个无所谓
+    void match(const char &c) {
+        static long long pt = 0;
+        static AC::TrieNode *cur_node = root;
+        cur_node = cur_node->nxt[uint8_t(c)] ? cur_node->nxt[uint8_t(c)] : root;
+        static int cnt = 0;
+        for (auto it = cur_node; it != nullptr; it = it->fail) {
+            if (it->end) {
+                infoStack.push_st(INFO{pt, 0, it->end - 1});
             }
         }
-        delete cur;
+        ++pt;
     }
-
     /**
      * @brief 向trie_tree中插入一个模式串，空串被自动忽略
      *
@@ -65,7 +66,7 @@ public:
         if (str.length() == 0) {//忽略空串
             return;
         }
-        TrieNode *cur_node = root;
+        TrieNodePtr cur_node = root;
         for (auto it: str) {
             assert((int)it < 128);
             if (cur_node->nxt[(unsigned char) it] == nullptr) {
@@ -82,7 +83,7 @@ public:
     }
 
     void build_AC() {
-        std::queue<TrieNode *> Q;
+        std::queue<TrieNodePtr> Q;
         for (auto &root_son: root->nxt) {
             if (root_son != nullptr) {
                 root_son->fail = root;
@@ -91,7 +92,7 @@ public:
         }
 
         while (!Q.empty()) {
-            TrieNode *frt = Q.front();
+            auto frt = Q.front();
             Q.pop();
             int i = 0;
             for (auto &son: frt->nxt) {
@@ -108,10 +109,10 @@ public:
         }
     }
 
-    AutoMaton() = default;
+    explicit AutoMaton(InfoStack& infoSatck): infoStack(infoSatck){}
     void build_from_pattern() {
         int i = 0;
-        for (auto &s: pattern_str) {
+        for (auto &s: PatternStr::pattern_str) {
             trie_insert(s, ++i);
         }
         build_AC();
@@ -124,24 +125,6 @@ public:
         }
     }
 };
-
-void readPatternStr(char config_file[]) {
-    FILE *config = fopen(config_file, "r");
-    assert(config != nullptr);
-    std::string s;
-    char c;
-    while ((c = getc(config)) != EOF) {
-        if (c == '\n') {
-            if (s.length() > 0) {
-                pattern_str.push_back(s);
-            }
-            s = "";
-        } else {
-            s += c;
-        }
-    }
-    fclose(config);
-}
 
 }//end_namespace_AC
 

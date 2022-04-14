@@ -37,7 +37,7 @@ void unzip(char target_file[],  char output_file[]) {
 int main(int argc, char *argv[]) {
     auto beginTime = std::chrono::system_clock::now();
     set_options(argc, argv);
-    AC::readPatternStr(config_file);
+    PatternStr::readPatternStr(config_file);
     if (mode == 0) {
         ZIP::compress(input_file, output_file);
     } else {

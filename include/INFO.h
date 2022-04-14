@@ -6,7 +6,7 @@
 #define BUPT_FINAL_INFO_H
 
 #include "CircularQueue.h"
-#include "AC.h"
+#include "PatternStr.h"
 
 struct INFO {
     long long end_pos;
@@ -14,7 +14,7 @@ struct INFO {
     int len;
 
     [[nodiscard]] uint64_t length() const {
-        return forward == 0 ? AC::pattern_str[len].length() : len;
+        return forward == 0 ? PatternStr::pattern_str[len].length() : len;
     }
 
     [[nodiscard]] long long start_pos() const {
@@ -29,6 +29,7 @@ bool info_include(const INFO &x, const INFO &y) {//已经满足x.pt>=y.pt，满�
 class InfoStack : public CircularQueue<INFO> {
     using CircularQueue<INFO>::CircularQueue;
 public:
+    void clear_and_do() = delete;
     void push_st(const INFO &new_info) {
         int cnt_pop = 0;
         int sz = size();
@@ -44,18 +45,6 @@ public:
             pop_back(cnt_pop + 1);
             push(new_info);
         }
-    }
-
-    void AC_match(const char &c, AC::TrieNode *root) {
-        static long long pt = 0;
-        static AC::TrieNode *cur_node = root;
-        cur_node = cur_node->nxt[uint8_t(c)] ? cur_node->nxt[uint8_t(c)] : root;
-        for (auto it = cur_node; it != nullptr; it = it->fail) {
-            if (it->end) {
-                this->push_st(INFO{pt, 0, it->end - 1});
-            }
-        }
-        ++pt;
     }
 
 };

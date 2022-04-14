@@ -53,11 +53,11 @@ void deal_info(const char &c) {
 }
 
 CircularQueue<char> AC_buffer(N, deal_info);
-AC::AutoMaton autoMaton;
+AC::AutoMaton autoMaton(AC_info_stack);
 
 
 void ac_match(const char &c) {
-    AC_info_stack.AC_match(c, autoMaton.root);
+    autoMaton.match(c);
     AC_buffer.push(c);
 }
 

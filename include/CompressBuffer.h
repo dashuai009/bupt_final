@@ -129,7 +129,7 @@ public:
             if (x) {
                 this->f(*ptr);
             } else {
-                for (const auto &it: AC::pattern_str[*ptr]) {
+                for (const auto &it: PatternStr::pattern_str[*ptr]) {
                     this->f(it);
                 }
             }
