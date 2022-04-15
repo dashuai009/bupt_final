@@ -8,7 +8,7 @@
 #include <utility>
 #include <zlib.h>
 #include "BitSet.h"
-
+#include "PatternStr.h"
 template<typename T>
 void applyF(const T x, const std::function<void(uint8_t)> &f) {
     for (int i = (sizeof(T) - 1) * 8; i >= 0; i -= 8) {

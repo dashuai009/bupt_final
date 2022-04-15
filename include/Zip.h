@@ -5,12 +5,12 @@
 #ifndef BUPT_FINAL_ZIP_H
 #define BUPT_FINAL_ZIP_H
 
-#include "Huffman.h"
+//#include "Huffman.h"
 #include "OutputBuffer.h"
 #include "CompressBuffer.h"
 #include "INFO.h"
 #include "InputBuffer.h"
-
+#include "AC.h"
 namespace ZIP {
 
 const int32_t N = 64 * 1024;
@@ -81,4 +81,33 @@ void compress(char input_file_name[], char output_file_name[]) {
 
 }
 
+namespace UNZIP{
+const int32_t N = 128 * 1024;
+
+OutputBuffer out_stream(N);
+
+//HuffmanDecode HD = HuffmanDecode(N * 50, [&UM](const uint8_t &c) {// 这地方写的有点hack
+//    UM.push(c);
+//});
+
+void pushIntoOutStream(const uint8_t &c){
+    out_stream.push(c);
+}
+UnzipMatchBuffer UM(N * 10, pushIntoOutStream);
+
+
+void uncompress(char target_file[],  char output_file[]) {
+    FILE *target = fopen(target_file, "r");
+
+    out_stream.setOutputFile(output_file);
+
+    int c;
+    while ((c = getc(target)) != EOF) {
+        UM.push(c);
+    }
+    out_stream.clear_and_do();
+    fclose(target);
+}
+
+}
 #endif //BUPT_FINAL_ZIP_H
