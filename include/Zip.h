@@ -20,13 +20,13 @@ void pushIntoOutBuf(const uint8_t &c) {
     out_buf.push(c);
 }
 
-Huffman H(N, pushIntoOutBuf);//  uint8_t  /// 哈夫曼编码之后送入输出数组
+//Huffman H(N, pushIntoOutBuf);//  uint8_t  /// 哈夫曼编码之后送入输出数组
+//
+//void pushIntoH(const uint8_t &c) {
+//    H.push(c);
+//}
 
-void pushIntoH(const uint8_t &c) {
-    H.push(c);
-}
-
-MatchBuffer after_match_buffer(N, pushIntoH);/// 控制符、未压缩字符，合并后进行huffman编码
+MatchBuffer after_match_buffer(N, pushIntoOutBuf);/// 控制符、未压缩字符，合并后进行huffman编码
 
 
 InfoStack AC_info_stack(N * 3);
@@ -67,7 +67,7 @@ InputBuffer input_buffer(N, ac_match);
 void clear_all() {
     AC_buffer.clear_and_do();
     after_match_buffer.clear_and_do();
-    H.clear_and_do();
+    //H.clear_and_do();
     out_buf.clear_and_do();
 }
 

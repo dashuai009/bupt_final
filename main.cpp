@@ -21,12 +21,12 @@ void unzip(char target_file[],  char output_file[]) {
     UnzipMatchBuffer UM(N * 10, [&out_stream](const uint8_t &c) {
         out_stream.push(c);
     });
-    HuffmanDecode HD = HuffmanDecode(N * 50, [&UM](const uint8_t &c) {// 这地方写的有点hack
-        UM.push(c);
-    });
+//    HuffmanDecode HD = HuffmanDecode(N * 50, [&UM](const uint8_t &c) {// 这地方写的有点hack
+//        UM.push(c);
+//    });
     int c;
     while ((c = getc(target)) != EOF) {
-        HD.push(c);
+        UM.push(c);
     }
     //UM.clear_and_do();
     out_stream.clear_and_do();
