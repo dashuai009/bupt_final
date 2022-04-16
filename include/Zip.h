@@ -11,6 +11,7 @@
 #include "INFO.h"
 #include "InputBuffer.h"
 #include "AC.h"
+
 namespace ZIP {
 
 const int32_t N = 64 * 1024;
@@ -37,17 +38,17 @@ void deal_info(const char &c) {
     if (AC_info_stack.size() > 0) {
         auto info_head = AC_info_stack.get(0);
         if (info_head.start_pos() == pt) {
-            after_match_buffer.push(false, info_head.len);
+            after_match_buffer.push(128 + info_head.len);
         } else if (info_head.start_pos() < pt && pt <= info_head.end_pos) {
 
         } else {
-            after_match_buffer.push(true, c);
+            after_match_buffer.push(c);
         }
         if (info_head.end_pos == pt) {
             AC_info_stack.fastPopFront();
         }
     } else {
-        after_match_buffer.push(true, c);
+        after_match_buffer.push(c);
     }
     ++pt;
 }
@@ -81,7 +82,7 @@ void compress(char input_file_name[], char output_file_name[]) {
 
 }
 
-namespace UNZIP{
+namespace UNZIP {
 const int32_t N = 128 * 1024;
 
 OutputBuffer out_stream(N);
@@ -90,13 +91,20 @@ OutputBuffer out_stream(N);
 //    UM.push(c);
 //});
 
-void pushIntoOutStream(const uint8_t &c){
-    out_stream.push(c);
+void pushIntoOutStream(const uint8_t &c) {
+    if (c > 127) {
+        for (const auto &it: PatternStr::pattern_str[c - 128]) {
+            out_stream.push(it);
+        }
+    } else {
+        out_stream.push(c);
+    }
 }
+
 UnzipMatchBuffer UM(N * 10, pushIntoOutStream);
 
 
-void uncompress(char target_file[],  char output_file[]) {
+void uncompress(char target_file[], char output_file[]) {
     FILE *target = fopen(target_file, "r");
 
     out_stream.setOutputFile(output_file);
