@@ -20,42 +20,50 @@
 #include<vector>
 #include "Log.h"
 #include "INFO.h"
+
 namespace AC {
+#define TrieNodePtr int
 
 struct TrieNode {
-    typedef TrieNode* TrieNodePtr;
     TrieNodePtr nxt[128]{};
     TrieNodePtr fail;
     int depth;
     int end; //第几个模式串，之后要放到占位符中间，0表示当前不是匹配串的结尾字符
     char c;
 
+    TrieNode():fail(0),depth(0),end(0),c(0){
+
+    }
+
     TrieNode(char c, int depth) : depth(depth), end(0), c(c) {
-        fail = nullptr;
+        fail = 0;
         for (auto &it: nxt) {
-            it = nullptr;
+            it = 0;
         }
     }
 };
-typedef TrieNode* TrieNodePtr;
 
+template<int N>
 class AutoMaton {
-    InfoStack& infoStack;
-    TrieNodePtr root = new TrieNode((char) 0, 0);
-    std::vector<TrieNodePtr> nodeSet;
+    InfoStack &infoStack;
+    //std::array<TrieNode, N> node;
+    TrieNode node[N];
+    const TrieNodePtr root = 1;
+    int nodeCnt = 1;
 public:
     void match(const char &c) {
         static long long pt = 0;
-        static AC::TrieNode *cur_node = root;
-        cur_node = cur_node->nxt[uint8_t(c)] ? cur_node->nxt[uint8_t(c)] : root;
+        static TrieNodePtr cur = root;//root == 1
+        cur = node[cur].nxt[uint8_t(c)] !=0 ? node[cur].nxt[uint8_t(c)] : root;
         static int cnt = 0;
-        for (auto it = cur_node; it != nullptr; it = it->fail) {
-            if (it->end) {
-                infoStack.push_st(INFO{pt, 0, it->end - 1});
+        for (auto it = cur; it != 0; it = node[it].fail) {
+            if (node[it].end) {
+                infoStack.push_st(INFO{pt, 0, node[it].end - 1});
             }
         }
         ++pt;
     }
+
     /**
      * @brief 向trie_tree中插入一个模式串，空串被自动忽略
      *
@@ -66,27 +74,26 @@ public:
         if (str.length() == 0) {//忽略空串
             return;
         }
-        TrieNodePtr cur_node = root;
+        TrieNodePtr cur = root;
         for (auto it: str) {
-            assert((int)it < 128);
-            if (cur_node->nxt[(unsigned char) it] == nullptr) {
-                cur_node->nxt[(int) it] = new TrieNode(it, cur_node->depth + 1);
-                nodeSet.push_back(cur_node->nxt[(int)it]);
+            assert((int) it < 128);
+            if (node[cur].nxt[(unsigned char) it] == 0) {
+                node[++nodeCnt] = TrieNode(it,node[cur].depth + 1);
+                node[cur].nxt[(int) it] = nodeCnt;
             }
-            assert(cur_node != cur_node -> nxt[(int)it]);
-            cur_node = cur_node->nxt[(int) it];
+            cur = node[cur].nxt[(int) it];
         }
-        if (cur_node->end == 0) {
+        if (node[cur].end == 0) {
             //如果str已经加进去了，cur_node的编号不为0
-            cur_node->end = No;
+            node[cur].end = No;
         }
     }
 
     void build_AC() {
         std::queue<TrieNodePtr> Q;
-        for (auto &root_son: root->nxt) {
-            if (root_son != nullptr) {
-                root_son->fail = root;
+        for (auto &root_son: node[root].nxt) {
+            if (root_son != 0) {
+                node[root_son].fail = root;
                 Q.push(root_son);
             }
         }
@@ -95,13 +102,13 @@ public:
             auto frt = Q.front();
             Q.pop();
             int i = 0;
-            for (auto &son: frt->nxt) {
+            for (auto &son: node[frt].nxt) {
                 //必须要用引用 son = &frt->nxt[i]
-                if (son != nullptr) {
-                    son->fail = frt->fail->nxt[i] ? frt->fail->nxt[i] : root;
+                if (son != 0) {
+                    node[son].fail = node[node[frt].fail].nxt[i] ? node[node[frt].fail].nxt[i] : root;
                     Q.push(son);
                 } else {
-                    son = frt->fail->nxt[i];
+                    son = node[node[frt].fail].nxt[i];
                     //assert(son != frt);
                 }
                 ++i;
@@ -109,20 +116,15 @@ public:
         }
     }
 
-    explicit AutoMaton(InfoStack& infoSatck): infoStack(infoSatck){}
+     AutoMaton(InfoStack &infoSatck) : infoStack(infoSatck) {}
+
     void build_from_pattern() {
         int i = 0;
         for (auto &s: PatternStr::pattern_str) {
             trie_insert(s, ++i);
         }
         build_AC();
-    }
-
-    ~AutoMaton() {
-        delete root;
-        for(auto it:nodeSet){
-            delete it;
-        }
+        std::cout << nodeCnt << '\n';
     }
 };
 
