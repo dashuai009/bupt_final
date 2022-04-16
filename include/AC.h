@@ -26,16 +26,14 @@ namespace AC {
 
 struct TrieNode {
     TrieNodePtr nxt[128]{};
-    TrieNodePtr fail;
     int depth;
-    int end; //第几个模式串，之后要放到占位符中间，0表示当前不是匹配串的结尾字符
     char c;
 
-    TrieNode():fail(0),depth(0),end(0),c(0){
+    TrieNode():depth(0),c(0){
 
     }
 
-    TrieNode(char c, int depth) : depth(depth), end(0), c(c) {
+    TrieNode(char c, int depth) : depth(depth),  c(c) {
         for (auto &it: nxt) {
             it = 0;
         }
@@ -49,6 +47,7 @@ class AutoMaton {
     TrieNode node[N];
     TrieNodePtr fail[N];
     TrieNodePtr nodeEnd[N];
+    TrieNodePtr last[N];
     const TrieNodePtr root = 1;
     int nodeCnt = 1;
 
@@ -59,7 +58,7 @@ public:
         static long long pt = 0;
         static TrieNodePtr cur = root;//root == 1
         cur = node[cur].nxt[uint8_t(c)] != 0 ? node[cur].nxt[uint8_t(c)] : root;
-        for (auto it = cur; it != 0; it = fail[it]) {
+        for (auto it = cur; it != 0; it = last[it]) {
             //++visitedCnt;
             if (__builtin_expect(nodeEnd[it],1)) {
                 infoStack.push_st(INFO{pt, 0, nodeEnd[it] - 1});
@@ -118,12 +117,14 @@ public:
                 }
                 ++i;
             }
+            last[frt] = nodeEnd[fail[frt]] ? fail[frt] : last[fail[frt]];
         }
     }
 
     AutoMaton(InfoStack &infoSatck) : infoStack(infoSatck) {
         memset(fail, 0, sizeof(fail));
         memset(nodeEnd, 0, sizeof(nodeEnd));
+        memset(last, 0, sizeof(last));
     }
 
     void build_from_pattern() {
