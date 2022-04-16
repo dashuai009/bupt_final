@@ -36,7 +36,6 @@ struct TrieNode {
     }
 
     TrieNode(char c, int depth) : depth(depth), end(0), c(c) {
-        fail = 0;
         for (auto &it: nxt) {
             it = 0;
         }
@@ -48,17 +47,23 @@ class AutoMaton {
     InfoStack &infoStack;
     //std::array<TrieNode, N> node;
     TrieNode node[N];
+    TrieNodePtr fail[N];
+    TrieNodePtr nodeEnd[N];
     const TrieNodePtr root = 1;
     int nodeCnt = 1;
+
 public:
+    int endCnt = 0;
+    int visitedCnt =0;
     void match(const char &c) {
         static long long pt = 0;
         static TrieNodePtr cur = root;//root == 1
-        cur = node[cur].nxt[uint8_t(c)] !=0 ? node[cur].nxt[uint8_t(c)] : root;
-        static int cnt = 0;
-        for (auto it = cur; it != 0; it = node[it].fail) {
-            if (node[it].end) {
-                infoStack.push_st(INFO{pt, 0, node[it].end - 1});
+        cur = node[cur].nxt[uint8_t(c)] != 0 ? node[cur].nxt[uint8_t(c)] : root;
+        for (auto it = cur; it != 0; it = fail[it]) {
+            //++visitedCnt;
+            if (__builtin_expect(nodeEnd[it],1)) {
+                infoStack.push_st(INFO{pt, 0, nodeEnd[it] - 1});
+                //++endCnt;
             }
         }
         ++pt;
@@ -78,14 +83,14 @@ public:
         for (auto it: str) {
             assert((int) it < 128);
             if (node[cur].nxt[(unsigned char) it] == 0) {
-                node[++nodeCnt] = TrieNode(it,node[cur].depth + 1);
+                node[++nodeCnt] = TrieNode(it, node[cur].depth + 1);
                 node[cur].nxt[(int) it] = nodeCnt;
             }
             cur = node[cur].nxt[(int) it];
         }
-        if (node[cur].end == 0) {
+        if (nodeEnd[cur] == 0) {
             //如果str已经加进去了，cur_node的编号不为0
-            node[cur].end = No;
+            nodeEnd[cur] = No;
         }
     }
 
@@ -93,7 +98,7 @@ public:
         std::queue<TrieNodePtr> Q;
         for (auto &root_son: node[root].nxt) {
             if (root_son != 0) {
-                node[root_son].fail = root;
+                fail[root_son] = root;
                 Q.push(root_son);
             }
         }
@@ -105,10 +110,10 @@ public:
             for (auto &son: node[frt].nxt) {
                 //必须要用引用 son = &frt->nxt[i]
                 if (son != 0) {
-                    node[son].fail = node[node[frt].fail].nxt[i] ? node[node[frt].fail].nxt[i] : root;
+                    fail[son] = node[fail[frt]].nxt[i] ? node[fail[frt]].nxt[i] : root;
                     Q.push(son);
                 } else {
-                    son = node[node[frt].fail].nxt[i];
+                    son = node[fail[frt]].nxt[i];
                     //assert(son != frt);
                 }
                 ++i;
@@ -116,7 +121,10 @@ public:
         }
     }
 
-     AutoMaton(InfoStack &infoSatck) : infoStack(infoSatck) {}
+    AutoMaton(InfoStack &infoSatck) : infoStack(infoSatck) {
+        memset(fail, 0, sizeof(fail));
+        memset(nodeEnd, 0, sizeof(nodeEnd));
+    }
 
     void build_from_pattern() {
         int i = 0;
@@ -124,7 +132,7 @@ public:
             trie_insert(s, ++i);
         }
         build_AC();
-        std::cout << nodeCnt << '\n';
+        std::cout <<"The size of trie is " << nodeCnt << '\n';
     }
 };
 
