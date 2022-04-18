@@ -34,14 +34,14 @@ struct TrieNode {
     int depth;
     char c;
 
-    TrieNode() : depth(0), c(0) {
+    TrieNode() : fail(0), nodeEnd(0), last(0), depth(0), c(0) {
         for (auto &it: nxt) {
             it = 0;
         }
 
     }
 
-    TrieNode(char c, int depth) : depth(depth), c(c) {
+    TrieNode(char c, int depth) : fail(0), nodeEnd(0), last(0), depth(depth), c(c) {
         for (auto &it: nxt) {
             it = 0;
         }
@@ -113,7 +113,7 @@ class AutoMaton {
                 ++i;
             }
             node[frt].last = node[node[frt].last].nodeEnd ? node[frt].fail
-                                                                      : node[node[frt].fail].last;
+                                                          : node[node[frt].fail].last;
         }
     }
 
@@ -126,8 +126,8 @@ public:
     void match(const char &c) {
         static long long pt = 0;
         static TrieNodePtr matchCur = root;//root == 0
-        matchCur = node[matchCur].nxt[uint8_t(c)] ;
-        for (auto it = matchCur; it ; it = node[it].fail) {
+        matchCur = node[matchCur].nxt[uint8_t(c)];
+        for (auto it = matchCur; it; it = node[it].fail) {
             //++visitedCnt;
             if (node[it].nodeEnd) {
                 //if (nodeEnd[it]) {
