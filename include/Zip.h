@@ -7,7 +7,7 @@
 
 //#include "Huffman.h"
 #include "OutputBuffer.h"
-#include "CompressBuffer.h"
+#include "ZlibBuffer.h"
 #include "INFO.h"
 #include "InputBuffer.h"
 #include "AC.h"
@@ -27,7 +27,7 @@ void pushIntoOutBuf(const uint8_t &c) {
 //    H.push(c);
 //}
 
-MatchBuffer after_match_buffer(N, pushIntoOutBuf);/// 控制符、未压缩字符，合并后进行huffman编码
+ZlibBuffer after_match_buffer(N, pushIntoOutBuf);/// 控制符、未压缩字符，合并后进行huffman编码
 
 
 InfoStack AC_info_stack(N * 3);
@@ -83,7 +83,7 @@ void compress(char input_file_name[], char output_file_name[]) {
 }
 
 namespace UNZIP {
-const int32_t N = 128 * 1024;
+const int32_t N = 64 * 1024;
 
 OutputBuffer out_stream(N);
 
@@ -101,7 +101,7 @@ void pushIntoOutStream(const uint8_t &c) {
     }
 }
 
-UnzipMatchBuffer UM(N * 10, pushIntoOutStream);
+UnZlibBuffer UM(N * 10, pushIntoOutStream);
 
 
 void uncompress(char target_file[], char output_file[]) {
