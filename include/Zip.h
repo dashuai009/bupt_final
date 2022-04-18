@@ -30,7 +30,7 @@ void pushIntoOutBuf(const uint8_t &c) {
 ZlibBuffer after_match_buffer(N, pushIntoOutBuf);/// 控制符、未压缩字符，合并后进行huffman编码
 
 
-InfoStack AC_info_stack(N * 3);
+InfoStack AC_info_stack(N ,[](const auto x){std::cout<<"AC_info_Stack error\n";exit(0);});
 
 long long pt = 0;
 
@@ -74,7 +74,7 @@ void clear_all() {
 
 void compress(char input_file_name[], char output_file_name[]) {
     out_buf.setOutputFile(output_file_name);
-    autoMaton.build_from_pattern();
+    autoMaton.init(PatternStr::pattern_str);
     input_buffer.readData(input_file_name);
     clear_all();
 }
