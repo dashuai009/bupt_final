@@ -18,7 +18,7 @@ add_executable(bupt_final
         include/AC.h
         include/BitSet.h
         include/CircularQueue.h
-        include/CompressBuffer.h
+        include/ZlibBuffer.h
         include/INFO.h
         include/Huffman.h
         include/Log.h
