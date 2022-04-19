@@ -54,7 +54,7 @@ void deal_info(const char &c) {
 }
 
 CircularQueue<char> AC_buffer(N, deal_info);
-AC::AutoMaton<400> autoMaton(AC_info_stack);
+AC::TrieNodeMyHeap::AutoMaton<500> autoMaton(AC_info_stack);
 
 
 void ac_match(const char &c) {

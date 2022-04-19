@@ -2,5 +2,6 @@ data/*
 o
 cmake-build-debug
 !data/defaultConfig.txt
+!data/config2.txt
 .idea
 gzip-1.11

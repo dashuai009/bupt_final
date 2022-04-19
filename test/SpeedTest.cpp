@@ -12,10 +12,10 @@
 #define N 128*1024
 
 // zip
-static void ZipSpeed(benchmark::State &state) {
+static void ZipSpeedHeap(benchmark::State &state) {
     PatternStr::readPatternStr("data/defaultConfig.txt");
     static InfoStack infoStack(N*3, [](auto x) {});
-    static AC::AutoMaton<400> autoMaton(infoStack);
+    static AC::TrieNodeHeap::AutoMaton<400> autoMaton(infoStack);
     autoMaton.init(PatternStr::pattern_str);
     static InputBuffer inputBuffer(N,[](const char &x){autoMaton.match(x);});
     for (auto _: state) {
@@ -23,6 +23,31 @@ static void ZipSpeed(benchmark::State &state) {
     }
 }
 
-BENCHMARK(ZipSpeed)->Iterations(30);
+// zip
+static void ZipSpeedArray(benchmark::State &state) {
+    PatternStr::readPatternStr("data/defaultConfig.txt");
+    static InfoStack infoStack(N*3, [](auto x) {});
+    static AC::TrieNodeArray::AutoMaton<400> autoMaton(infoStack);
+    autoMaton.init(PatternStr::pattern_str);
+    static InputBuffer inputBuffer(N,[](const char &x){autoMaton.match(x);});
+    for (auto _: state) {
+        inputBuffer.readData("data/test_in3.txt");
+    }
+}
+// zip
+static void ZipSpeedMyHeap(benchmark::State &state) {
+    PatternStr::readPatternStr("data/defaultConfig.txt");
+    static InfoStack infoStack(N*3, [](auto x) {});
+    static AC::TrieNodeMyHeap::AutoMaton<400> autoMaton(infoStack);
+    autoMaton.init(PatternStr::pattern_str);
+    static InputBuffer inputBuffer(N,[](const char &x){autoMaton.match(x);});
+    for (auto _: state) {
+        inputBuffer.readData("data/test_in3.txt");
+    }
+}
+const int iters = 20;
+BENCHMARK(ZipSpeedHeap)->Iterations(iters);
+BENCHMARK(ZipSpeedMyHeap)->Iterations(iters);
+BENCHMARK(ZipSpeedArray)->Iterations(iters);
 
 BENCHMARK_MAIN();

@@ -23,14 +23,15 @@
 #include<cstring>
 #include<cassert>
 
-#define FAIL_ARRAY
-#ifdef FAIL_ARRAY
 namespace AC {
-#define TrieNodePtr int
+namespace TrieNodeArray {
+using TrieNodePtr = int;
 
 struct TrieNode {
     TrieNodePtr nxt[128]{};
-    TrieNodePtr fail, nodeEnd, last;
+    TrieNodePtr fail;
+    TrieNodePtr nodeEnd;
+    TrieNodePtr last;
     int depth;
     char c;
 
@@ -48,12 +49,12 @@ struct TrieNode {
     }
 };
 
-template<int N>
+template<int nodeN>
 class AutoMaton {
     InfoStack &infoStack;
 
     /// ======= trie ========
-    std::array<TrieNode, N> node;
+    std::array<TrieNode, nodeN> node;
 //    std::array<TrieNodePtr, N> fail,nodeEnd,last;
     const TrieNodePtr root = 0;
     //TrieNodePtr fail[N], nodeEnd[N], last[N];
@@ -77,8 +78,10 @@ class AutoMaton {
         for (auto it: str) {
             assert((int) it < 128);
             if (node[cur].nxt[(unsigned char) it] == 0) {
-                node[++nodeCnt] = TrieNode(it, node[cur].depth + 1);
+                node[nodeCnt] = TrieNode(it, node[cur].depth + 1);
                 node[cur].nxt[(int) it] = nodeCnt;
+                ++nodeCnt;
+                assert(nodeCnt <= nodeN);
             }
             cur = node[cur].nxt[(int) it];
         }
@@ -112,7 +115,7 @@ class AutoMaton {
                 }
                 ++i;
             }
-            node[frt].last = node[node[frt].last].nodeEnd ? node[frt].fail
+            node[frt].last = node[node[frt].fail].nodeEnd ? node[frt].fail
                                                           : node[node[frt].fail].last;
         }
     }
@@ -149,43 +152,46 @@ public:
             trie_insert(s, ++i);
         }
         build_AC();
-        //std::cout <<"The size of trie is " << nodeCnt << '\n';
+//        std::cout << "The size of trie is " << nodeCnt << '\n';
     }
 };
 
-}//end_namespace_AC
-#else//DEF FAIL_ARRAY
+}//end_namespace_TrieNodeArray
 
-namespace AC {
-#define TrieNodePtr TrieNode*
+namespace TrieNodeHeap {
+
 
 struct TrieNode {
-    TrieNodePtr nxt[256]{};
+    using TrieNodePtr = TrieNode *;
+    TrieNodePtr nxt[128]{};
     TrieNodePtr fail;
     int depth;
     int end;
+    TrieNodePtr last;
     char c;
 
-    TrieNode() : fail(nullptr), depth(0), end(0), c(0) {
-
+    TrieNode() : fail(nullptr), depth(0), end(0), last(nullptr), c(0) {
+        for (auto &it: nxt) {
+            it = nullptr;
+        }
     }
 
-    TrieNode(char c, int depth) : fail(nullptr), depth(depth), end(0), c(c) {
+    TrieNode(char c, int depth) : fail(nullptr), depth(depth), end(0), last(nullptr), c(c) {
         for (auto &it: nxt) {
             it = nullptr;
         }
     }
 };
 
-template<int N>
+using TrieNodePtr = TrieNode *;
+
+template<int nodeN>
 class AutoMaton {
     InfoStack &infoStack;
 
     /// ======= trie ========
     std::vector<TrieNodePtr> nodeSet;
-    TrieNodePtr root = new TrieNode(char(0), 0);
-
-
+    TrieNodePtr root = new TrieNode();
 
     /// ==== private method =====
     /**
@@ -238,6 +244,8 @@ class AutoMaton {
                 }
                 ++i;
             }
+            //frt->last = frt->last && frt->last->end ? frt->fail : frt->fail->last;
+            frt->last = frt->fail->end ? frt->fail : frt->fail->last;
         }
     }
 
@@ -248,15 +256,17 @@ class AutoMaton {
     int visitedCnt = 0;
 public:
     explicit AutoMaton(InfoStack &infoSatck) : infoStack(infoSatck) {}
+
     ~AutoMaton() {
         delete root;
-        for(auto it:nodeSet){
+        for (auto it: nodeSet) {
             delete it;
         }
     }
+
     void match(const char &c) {
         matchCur = matchCur->nxt[uint8_t(c)] ? matchCur->nxt[uint8_t(c)] : root;
-        for (auto it = matchCur; it != nullptr; it = it->fail) {
+        for (auto it = matchCur; it != nullptr; it = it->last) {
             if (it->end) {
                 infoStack.push_st(INFO{pt, 0, it->end - 1});
             }
@@ -275,12 +285,151 @@ public:
         for (auto &s: strs) {
             trie_insert(s, ++i);
         }
+//        std::cout << "The size of trie is " << nodeSet.size() + 1 << '\n';
         build_AC();
-        //std::cout <<"The size of trie is " << nodeSet.size() << '\n';
     }
 };
 
+
+}
+
+namespace TrieNodeMyHeap {
+
+struct FailEnd{
+
+};
+struct TrieNode {
+    using TrieNodePtr = TrieNode *;
+    TrieNodePtr nxt[128]{};
+    TrieNodePtr fail;
+    int depth;
+    int end;
+    TrieNodePtr last;
+    char c;
+
+    TrieNode() : fail(nullptr), depth(0), end(0), last(nullptr), c(0) {
+        for (auto &it: nxt) {
+            it = nullptr;
+        }
+    }
+
+    TrieNode(char c, int depth) : fail(nullptr), depth(depth), end(0), last(nullptr), c(c) {
+        for (auto &it: nxt) {
+            it = nullptr;
+        }
+    }
+};
+
+
+using TrieNodePtr = TrieNode *;
+
+template<int nodeN>
+class AutoMaton {
+    InfoStack &infoStack;
+
+    /// ======= trie ========
+    std::array<TrieNode, nodeN> nodeSet;
+    int nodeCnt = 1;
+    TrieNodePtr root = &nodeSet[0];
+
+    /// ==== private method =====
+    /**
+     * @brief 向trie_tree中插入一个模式串，空串被自动忽略
+     *
+     * @param str 模式串
+     * @param root tried_tree的根节点
+     */
+    void trie_insert(const std::string &str, int No) {
+        if (str.length() == 0) {//忽略空串
+            return;
+        }
+        TrieNodePtr cur_node = root;
+        for (auto it: str) {
+            assert((int) it < 128);
+            if (cur_node->nxt[(unsigned char) it] == nullptr) {
+                nodeSet[++nodeCnt] = TrieNode(it, cur_node->depth + 1);
+                cur_node->nxt[(int) it] = &nodeSet[nodeCnt];
+            }
+            assert(cur_node != cur_node->nxt[(int) it]);
+            cur_node = cur_node->nxt[(int) it];
+        }
+        if (cur_node->end == 0) {
+            //如果str已经加进去了，cur_node的编号不为0
+            cur_node->end = No;
+        }
+    }
+
+    void build_AC() {
+        std::queue<TrieNodePtr> Q;
+        for (auto &root_son: root->nxt) {
+            if (root_son != nullptr) {
+                root_son->fail = root;
+                Q.push(root_son);
+            }
+        }
+
+        while (!Q.empty()) {
+            auto frt = Q.front();
+            Q.pop();
+            int i = 0;
+            for (auto &son: frt->nxt) {
+                //必须要用引用 son = &frt->nxt[i]
+                if (son != nullptr) {
+                    son->fail = frt->fail->nxt[i] ? frt->fail->nxt[i] : root;
+                    Q.push(son);
+                } else {
+                    son = frt->fail->nxt[i];
+                    //assert(son != frt);
+                }
+                ++i;
+            }
+            //frt->last = frt->last && frt->last->end ? frt->fail : frt->fail->last;
+            frt->last = frt->fail->end ? frt->fail : frt->fail->last;
+        }
+    }
+
+    /// ==== match variable =====
+    long long pt = 0;
+    TrieNodePtr matchCur = root;//root == 1
+    int endCnt = 0;
+    int visitedCnt = 0;
+public:
+    explicit AutoMaton(InfoStack &infoSatck) : infoStack(infoSatck) {}
+
+
+    void match(const char &c) {
+        matchCur = matchCur->nxt[uint8_t(c)] ? matchCur->nxt[uint8_t(c)] : root;
+        for (auto it = matchCur; it != nullptr; it = it->last) {
+            if (it->end) {
+                infoStack.push_st(INFO{pt, 0, it->end - 1});
+            }
+        }
+        ++pt;
+    }
+
+
+    void init(const std::vector<std::string> &strs) {
+        nodeSet.fill(TrieNode());
+        nodeCnt = 1;
+        pt = 0;
+        matchCur = root;//root == 1
+        endCnt = 0;
+        visitedCnt = 0;
+        int i = 0;
+        for (auto &s: strs) {
+            trie_insert(s, ++i);
+        }
+//        std::cout << "The size of trie is " << nodeCnt << '\n';
+        build_AC();
+    }
+};
+
+
+}
 }//end_namespace_AC
 
-#endif
+
+
+
+
 #endif //BUPT_FINAL_AC_H
