@@ -71,6 +71,6 @@ add_executable(
 target_link_libraries(SpeedTest benchmark::benchmark)
 
 add_executable(
-        speedTestMain
-        test/speedTestMain.cpp
+        findPattern
+        findPattern.cpp
 )
