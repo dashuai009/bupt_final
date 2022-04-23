@@ -57,7 +57,7 @@ void match(const char *str, int slen, const char *ptr, int plen, const std::func
 
 void G(char *source, int sourceLen, char *dest, int &destLen, const char &flag) {
     static char cur[M + 1];
-    static std::map<std::string, int> cnt;
+    static std::map<std::string_view, int> cnt;
     cnt.clear();
     for (int i = 0; i < sourceLen; ++i) {
         if (i % (std::max(sourceLen / 100, 1)) == 0) { progressBar(i * 1.0 / sourceLen); }
@@ -65,7 +65,8 @@ void G(char *source, int sourceLen, char *dest, int &destLen, const char &flag) 
             if (l + i >= sourceLen)break;
             strncpy(cur, source + i, l);
             cur[l] = 0;
-            std::string tmp = cur;
+            //std::string tmp = cur;
+            std::string_view tmp(source + i, l);
             if (cnt.find(tmp) != cnt.end()) {
                 cnt[tmp] += l - 1;
             } else {
