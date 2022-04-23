@@ -10,7 +10,7 @@ namespace PatternStr {
 using STR = std::string;
 std::vector <STR> pattern_str;
 
-void readPatternStr(char config_file[]) {
+void readPatternStr(const char config_file[]) {
     FILE *config = fopen(config_file, "r");
     assert(config != nullptr);
     std::string s;

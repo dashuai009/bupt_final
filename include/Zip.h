@@ -11,6 +11,7 @@
 #include "INFO.h"
 #include "InputBuffer.h"
 #include "AC.h"
+#include "Log.h"
 
 namespace ZIP {
 
@@ -30,7 +31,10 @@ void pushIntoOutBuf(const uint8_t &c) {
 ZlibBuffer after_match_buffer(N, pushIntoOutBuf);/// 控制符、未压缩字符，合并后进行huffman编码
 
 
-InfoStack AC_info_stack(N ,[](const auto x){std::cout<<"AC_info_Stack error\n";exit(0);});
+InfoStack AC_info_stack(N, [](const auto x) {
+    Log(std::cerr, "AC_info_Stack error\n");
+    exit(0);
+});
 
 long long pt = 0;
 
@@ -70,9 +74,11 @@ void clear_all() {
     after_match_buffer.clear_and_do();
     //H.clear_and_do();
     out_buf.clear_and_do();
+    out_buf.close();
 }
 
-void compress(char input_file_name[], char output_file_name[]) {
+void compress(const char input_file_name[], const char output_file_name[]) {
+    pt = 0;
     out_buf.setOutputFile(output_file_name);
     autoMaton.init(PatternStr::pattern_str);
     input_buffer.readData(input_file_name);
@@ -104,7 +110,7 @@ void pushIntoOutStream(const uint8_t &c) {
 UnZlibBuffer UM(N * 10, pushIntoOutStream);
 
 
-void uncompress(char target_file[], char output_file[]) {
+void uncompress(const char target_file[], const char output_file[]) {
     FILE *target = fopen(target_file, "r");
 
     out_stream.setOutputFile(output_file);
@@ -114,6 +120,7 @@ void uncompress(char target_file[], char output_file[]) {
         UM.push(c);
     }
     out_stream.clear_and_do();
+    out_stream.close();
     fclose(target);
 }
 

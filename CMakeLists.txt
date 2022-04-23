@@ -74,3 +74,9 @@ add_executable(
         findPattern
         findPattern.cpp
 )
+
+add_executable(
+        TestRatio
+        test/TestCompressionRatio.cpp
+)
+target_link_libraries(TestRatio benchmark::benchmark)

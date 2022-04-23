@@ -4,6 +4,7 @@
 
 #ifndef BUPT_FINAL_LOG_H
 #define BUPT_FINAL_LOG_H
+#include<iostream>
 bool quiet = true;
 
 template<typename T>

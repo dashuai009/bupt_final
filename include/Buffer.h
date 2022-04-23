@@ -6,13 +6,7 @@
 #define BUPT_FINAL_BUFFER_H
 
 #include <functional>
-
-#ifdef  BUPT_FINAL_LOG_H
-
 #include "Log.h"
-
-#endif
-
 /**
  * @brief
  *
