@@ -72,6 +72,8 @@ target_link_libraries(SpeedTest benchmark::benchmark)
 
 add_executable(
         findPattern
+        include/KMP.h
+        include/ProgressBar.h
         findPattern.cpp
 )
 
