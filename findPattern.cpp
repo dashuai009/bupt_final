@@ -1,19 +1,20 @@
 #include<bits/stdc++.h>
 
-const int N = 1e6 + 10;
 constexpr int M = 60;
 
 
-void progressBar(double progress) {
-    int barWidth = 70;
-    std::cout << "[";
-    int pos = barWidth * progress;
+void progressBar(double progress, double total, const char *info) {
+    constexpr int barWidth = 70;
+    static int pos = -1;
+    if (progress < 0 || progress > total || int(barWidth * progress / total) == pos)return;
+    pos = barWidth * progress / total;
+    std::cout << info << "[";
     for (int i = 0; i < barWidth; ++i) {
         if (i < pos) std::cout << "=";
         else if (i == pos) std::cout << ">";
         else std::cout << " ";
     }
-    std::cout << "] " << int(progress * 100.0) << " %\r";
+    std::cout << "] " << int(progress / total * 100.0) << " %\r";
     std::cout.flush();
 }
 
@@ -39,6 +40,7 @@ void match(const char *str, int slen, const char *ptr, int plen, const std::func
     cal_next(ptr, next, plen);//计算next数组
     int k = -1;
     for (int i = 0; i < slen; i++) {
+        progressBar(i, slen, "KMP match:");
         while (k > -1 && ptr[k + 1] != str[i])//ptr和str不匹配，且k>-1（表示ptr和str有部分匹配）
             k = next[k];//往前回溯
         if (ptr[k + 1] == str[i])
@@ -56,16 +58,11 @@ void match(const char *str, int slen, const char *ptr, int plen, const std::func
 }
 
 void G(char *source, int sourceLen, char *dest, int &destLen, const char &flag) {
-    static char cur[M + 1];
     static std::map<std::string_view, int> cnt;
     cnt.clear();
     for (int i = 0; i < sourceLen; ++i) {
-        if (i % (std::max(sourceLen / 100, 1)) == 0) { progressBar(i * 1.0 / sourceLen); }
-        for (int l = 3; l < 60; ++l) {
-            if (l + i >= sourceLen)break;
-            strncpy(cur, source + i, l);
-            cur[l] = 0;
-            //std::string tmp = cur;
+        progressBar(i, sourceLen, "find_substr");
+        for (int l = 3; l < M && l + i < sourceLen; ++l) {
             std::string_view tmp(source + i, l);
             if (cnt.find(tmp) != cnt.end()) {
                 cnt[tmp] += l - 1;
@@ -84,6 +81,7 @@ void G(char *source, int sourceLen, char *dest, int &destLen, const char &flag) 
               << "\n可以压缩的大小是" << bestSubStr.second << '\n';
 //              << "占比 " << bestSubStr.second * 100.0 / sourceLen << " %\n";
     const int curLen = bestSubStr.first.length();
+    static char cur[M + 1];
     for (int i = 0; i < curLen; ++i) {
         cur[i] = bestSubStr.first[i];
     }
@@ -105,17 +103,20 @@ void G(char *source, int sourceLen, char *dest, int &destLen, const char &flag) 
 }
 
 char input_file[] = "data/test_in1.txt";
-char s[N], t[N];
+char *s;
+char *t;
 
 int main() {
     FILE *input = fopen(input_file, "r");
     fseek(input, 0, SEEK_END);
     auto input_size = ftell(input);
     rewind(input);
+    s = new char[input_size + 10];
+    t = new char[input_size + 10];
     fread(s, 1, input_size, input);
     fclose(input);
     std::cout << "the size of input:" << input_size << '\n';
-    int slen = input_size;
+    int slen = static_cast<int>(input_size);
     int tlen = 0;
     int flagPt = 128;
     for (int i = 0; i < 20; ++i) {
@@ -137,5 +138,7 @@ int main() {
 //            std::cout << t[i];
 //        }
 //    }
+    delete[]s;
+    delete[]t;
     return 0;
 }
