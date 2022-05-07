@@ -19,7 +19,7 @@ const int32_t N = 64 * 1024;
 OutputBuffer out_buf(N);// uint8_t
 
 void pushIntoOutBuf(const uint8_t &c) {
-    out_buf.push(c);
+    out_buf.Buffer::push(c);
 }
 
 //Huffman H(N, pushIntoOutBuf);//  uint8_t  /// 哈夫曼编码之后送入输出数组
@@ -93,17 +93,13 @@ const int32_t N = 64 * 1024;
 
 OutputBuffer out_stream(N);
 
-//HuffmanDecode HD = HuffmanDecode(N * 50, [&UM](const uint8_t &c) {// 这地方写的有点hack
-//    UM.push(c);
-//});
 
 void pushIntoOutStream(const uint8_t &c) {
     if (c > 127) {
-        for (const auto &it: PatternStr::pattern_str[c - 128]) {
-            out_stream.push(it);
-        }
+        out_stream.push((uint8_t *) PatternStr::pattern_str[c - 128].c_str(),
+                        PatternStr::pattern_str[c - 128].length());
     } else {
-        out_stream.push(c);
+        out_stream.Buffer::push(c);
     }
 }
 

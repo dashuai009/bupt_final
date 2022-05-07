@@ -3,6 +3,7 @@
 //
 #ifndef BUPT_FINAL_OUTPUTBUFFER_H
 #define BUPT_FINAL_OUTPUTBUFFER_H
+
 #include "Buffer.h"
 
 class OutputBuffer : public Buffer<uint8_t> {
@@ -10,8 +11,8 @@ class OutputBuffer : public Buffer<uint8_t> {
 private:
     FILE *output_ptr = nullptr;
 public:
-    ~OutputBuffer(){
-        if(output_ptr){
+    ~OutputBuffer() {
+        if (output_ptr) {
             fclose(output_ptr);
             output_ptr = nullptr;
         }
@@ -22,14 +23,32 @@ public:
         buffer_offset = 0;
     }
 
-    void setOutputFile(const char output_file_name[]){
-        output_ptr = fopen(output_file_name,"wb");
-        if(!output_ptr){
-            Log(std::cerr,"Set output file error!\n");
+    void setOutputFile(const char output_file_name[]) {
+        output_ptr = fopen(output_file_name, "wb");
+        if (!output_ptr) {
+            Log(std::cerr, "Set output file error!\n");
         }
     }
 
-    void close(){
+    void pushStr(const std::string &s) {
+
+    }
+
+    void push(uint8_t *a, int len) {
+        while (buffer_offset + len >= BUFFER_SIZE) {
+            memcpy(buffer + buffer_offset, a, BUFFER_SIZE - buffer_offset);
+            a += BUFFER_SIZE - buffer_offset;
+            len -= BUFFER_SIZE - buffer_offset;
+            buffer_offset = BUFFER_SIZE;
+            clear_and_do();
+        }
+        if (len > 0) {
+            memcpy(buffer + buffer_offset, a, len);
+            buffer_offset += len;
+        }
+    }
+
+    void close() {
         fclose(output_ptr);
         output_ptr = nullptr;
     }
