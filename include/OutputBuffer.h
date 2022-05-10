@@ -6,7 +6,7 @@
 
 #include "Buffer.h"
 
-class OutputBuffer : public Buffer<uint8_t> {
+class OutputBuffer : private Buffer<uint8_t> {
     using Buffer<uint8_t>::Buffer;
 private:
     FILE *output_ptr = nullptr;
@@ -30,8 +30,8 @@ public:
         }
     }
 
-    void pushStr(const std::string &s) {
-
+    void push(const uint8_t &x) override{
+        Buffer<uint8_t>::push(x);
     }
 
     void push(uint8_t *a, int len) {

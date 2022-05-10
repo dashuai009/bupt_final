@@ -19,7 +19,7 @@ const int32_t N = 64 * 1024;
 OutputBuffer out_buf(N);// uint8_t
 
 void pushIntoOutBuf(const uint8_t &c) {
-    out_buf.Buffer::push(c);
+    out_buf.push(c);
 }
 
 //Huffman H(N, pushIntoOutBuf);//  uint8_t  /// 哈夫曼编码之后送入输出数组
@@ -99,7 +99,7 @@ void pushIntoOutStream(const uint8_t &c) {
         out_stream.push((uint8_t *) PatternStr::pattern_str[c - 128].c_str(),
                         PatternStr::pattern_str[c - 128].length());
     } else {
-        out_stream.Buffer::push(c);
+        out_stream.push(c);
     }
 }
 
