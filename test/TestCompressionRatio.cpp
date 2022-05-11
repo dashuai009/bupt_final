@@ -37,13 +37,14 @@ int64_t fileSize(const char *file_name) {
 
 using F = std::function<void(const char *inputFile, const char *)>;
 auto BM_test = [](benchmark::State &state, const char *inputFile, const char *outputFile, const F &f) {
-    const auto inFileSize = fileSize(inputFile);
     double zipSpeed = 0;
     for (auto _: state) {
         f(inputFile, outputFile);
-        zipSpeed += inFileSize;
+            zipSpeed += 1;
     }
+    const auto inFileSize = fileSize(inputFile);
     const auto outFileSize = fileSize(outputFile);
+    zipSpeed *=std::max(inFileSize, outFileSize);
     state.counters["ratio"] = std::min(inFileSize, outFileSize) * 1.0 / std::max(inFileSize, outFileSize);
     state.counters["speed"] = benchmark::Counter(zipSpeed, benchmark::Counter::kIsRate);
 };

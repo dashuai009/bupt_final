@@ -3,7 +3,7 @@
 //
 #ifndef BUPT_FINAL_OUTPUTBUFFER_H
 #define BUPT_FINAL_OUTPUTBUFFER_H
-
+#include<cstring>
 #include "Buffer.h"
 
 class OutputBuffer : private Buffer<uint8_t> {
