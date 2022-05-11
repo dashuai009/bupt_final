@@ -2,24 +2,27 @@
 #include "include/ProgressBar.h"
 #include "include/KMP.h"
 
-constexpr int M = 60;
+constexpr int M = 100;
 
 void G(char *source, int sourceLen, char *dest, int &destLen, const char &flag) {
     static std::map<std::string_view, int> cnt;
-    cnt.clear();
-    for (int i = 0; i < sourceLen; ++i) {
-        progressBar(i, sourceLen, "find_substr");
-        for (int l = 3; l < M && l + i < sourceLen; ++l) {
+
+    std::pair<std::string, int> bestSubStr{"", 0};
+    int kkk = 0;
+    for (int l = 3; l < M; ++l) {
+        cnt.clear();
+        for (int i = 0; i + l - 1 < sourceLen; ++i) {
+            progressBar(++kkk, sourceLen * M, "find_substr");
             std::string_view tmp(source + i, l);
             cnt.find(tmp) != cnt.end() ? cnt[tmp] += l - 1 : cnt[tmp] = l - 1;
         }
-    }
-    std::pair<std::string, int> bestSubStr{"", 0};
-    for (auto it: cnt) {
-        if (it.second > bestSubStr.second) {
-            bestSubStr = it;
+        for (auto it: cnt) {
+            if (it.second > bestSubStr.second) {
+                bestSubStr = it;
+            }
         }
     }
+
     std::cout << "The Longest substr is:\n" << bestSubStr.first
               << "\nSigma g(t) is equal to " << bestSubStr.second << '\n';
     const int curLen = bestSubStr.first.length();
