@@ -56,7 +56,7 @@ void set_options(int argc, char *argv[]) {
                 break;
             case 'p':
                 strcpy(config_file, optarg);
-                output_file[strlen(optarg)] = 0;
+                config_file[strlen(optarg)] = 0;
                 break;
             case 'q':
                 quiet = true;
